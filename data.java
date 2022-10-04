@@ -31,71 +31,53 @@ public class data {
         }
     }
 
-    public ArrayList<String> getdata(ArrayList<String> in, boolean timein) {
+    public ArrayList<String> getdata(ArrayList<String> in) {
         var out = new ArrayList<String>();
 
-        if (timein) {
-            export_head.add("日期");
-        }
         export_head.addAll(in);
         body.forEach((body_tmp) -> {
-            if (body_tmp.text().contains("合計") | body_tmp.text().contains("小計") | body_tmp.text().contains("總計")) {
+            if (
+                    body_tmp.text().contains("合計") |
+                            body_tmp.text().contains("小計") |
+                            body_tmp.text().contains("總計")) {
                 return;
-            }
-            if (timein) {
-                export_body.add("\"" + check.todate(file.getName()) + "\"");
-                out.add(check.todate(file.getName()));
             }
             in.forEach((in_tmp) -> {
                 var count = head.eachText().indexOf(in_tmp);
                 var tmp = (body_tmp.child(count).select("td").text());
 
-                if (in_tmp.contains("代號")) {
-                    tmp = "\"=HYPERLINK(\"\"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID=" +
-                            tmp + "\"\",\"\"" + tmp + "" + "\"\")\"";
-                    export_body.add(tmp);
-                    out.add(tmp);
-                } else {
-                    if (tmp.isEmpty()) {
-                        tmp = "null";
-                    }
-                    export_body.add("\"" + tmp + "\"");
-                    out.add(tmp);
+                if (tmp.isEmpty()) {
+                    tmp = "null";
                 }
+                export_body.add(tmp);
             });
-            export_body.add("\n");
-            out.add("\n");
         });
+        out.addAll(export_body);
         return out;
     }
 
     public void export(String in, boolean title_in) throws Exception {
         var export_file = new File(in);
+        export_file.createNewFile();
         var out_stream = new OutputStreamWriter(new FileOutputStream(in));
 
-        export_file.createNewFile();
         if (title_in) {
             export_head.forEach((tmp) -> {
                 try {
-                    out_stream.write("\"" + tmp.replace(" ", "") + "\",");
+                    var is_last = export_head.indexOf(tmp) == (export_head.size() - 1) ? "\n" : ",";
+                    out_stream.write("\"" + tmp + "\"" + is_last);
                 } catch (IOException e) {
                 }
             });
-            out_stream.write("\n");
         }
         export_body.forEach((tmp) -> {
             try {
-                out_stream.write(tmp);
+                var is_last = (export_body.indexOf(tmp)+1)%export_head.size() == 0 ? "\n" : ",";
+                out_stream.write("\"" + tmp + "\"" + is_last);
             } catch (IOException e) {
-            }
-            if (!tmp.contains("\n")) {
-                try {
-                    out_stream.write(",");
-                } catch (IOException e) {
-                }
             }
         });
         out_stream.close();
-        System.out.print(file.getName() + " exported\n");
+        System.out.print(export_file.getName() + " exported\n");
     }
 }
