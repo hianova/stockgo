@@ -96,7 +96,6 @@ public class randomUA {
                 "Opera/9.64 (Windows NT 6.0; U; pl) Presto/2.1.1",
                 "Opera/9.63 (X11; Linux x86_64; U; ru) Presto/2.1.1",
                 "Opera/9.63 (X11; Linux x86_64; U; cs) Presto/2.1.1"};
-        var out = data[new Random().nextInt(90)];
-        return out;
+        return data[new Random().nextInt(90)];
     }
 }

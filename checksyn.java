@@ -1,20 +1,19 @@
 package com.mycompany.stockgo;
 
-import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.net.*;
 
 public class checksyn {
 
-    Dictionary<String, String> tag = new Hashtable<>();
-    String downloads_dir;
-    DateTimeFormatter uni_date;
-    String[] num_stock, num_ETF;
+    private final Dictionary<String, String> tag;
+    private final String downloads_dir;
+    private final DateTimeFormatter uni_date;
+    private final String[] num_stock;
+    private final String[] num_ETF;
 
     public checksyn() {
+        tag = new Hashtable<>();
         tag.put("www_twse_com_tw", "div>table");
         tag.put("www_twse_com_tw_G.P", "GET");
         tag.put("www_twse_com_tw_encode", "UTF-8");
@@ -41,7 +40,32 @@ public class checksyn {
         uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
     }
 
-    public String gettag(String in) {
+
+    public String toName(String in) throws Exception {
+        String[] list = {"\\.\\w+", "_@num", "_@date", "@num", "@date"};
+        var url = new URL(in).getPath();
+        for (var tmp : list) {
+            url = url.replaceAll(tmp, "");
+        }
+        var in_tmp = url.split("/");
+        var out = in_tmp[in_tmp.length - 2] + "_" + in_tmp[in_tmp.length - 1];
+        return out;
+    }
+
+    public void renew_list() throws Exception {
+        String[] list = new String[]{
+                "https://isin.twse.com.tw/isin/C_public.jsp?strMode=2",
+                "https://isin.twse.com.tw/isin/C_public.jsp?strMode=4",
+                "https://isin.twse.com.tw/isin/C_public.jsp?strMode=7",};
+
+        for (var tmp : list) {
+            var crawl = new crawl(tmp);
+            crawl.setPath(System.getProperty("user.dir") + System.getProperty("file.separator") + toName(tmp) + ".txt");
+            crawl.save();
+        }
+    }
+
+    public String getTag(String in) {
         var out = tag.get(in);
         return out;
     }
@@ -63,19 +87,10 @@ public class checksyn {
         return out;
     }
 
-    public DateTimeFormatter getuni_date() {
+    public DateTimeFormatter getUni_date() {
         var out = uni_date;
         return out;
     }
-
-    public String toname(String in) throws Exception {
-        String[] list = {"\\.\\w+","_@num","_@date","@num","@date"};
-        var url = new URL(in).getPath();
-        for (var tmp:list){
-            url=url.replaceAll(tmp,"");
-        }
-        var in_tmp = url.split("/");
-        var out = in_tmp[in_tmp.length - 2] + "_" + in_tmp[in_tmp.length - 1];
-        return out;
-    }
 }
+
+
