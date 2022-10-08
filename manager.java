@@ -22,6 +22,19 @@ public class manager extends config {
         System.out.println(in.get(1) + " added");
     }
 
+    public void delete(ArrayList<String> in) throws Exception {
+        if (in.get(0).matches("[0-9]+")) {
+            in.forEach((in_tmp) -> {
+                label_url.remove(in_tmp);
+                label_title.remove(in_tmp);
+                label_folder.remove(in_tmp);
+                label_tag.remove(in_tmp);
+                label_status.remove(in_tmp);
+            });
+        }
+        sync_config();
+    }
+
     public void update() {
         label_status.forEach((tmp) -> {
             if (Period.between(LocalDate.parse(tmp, uni_date),
@@ -41,10 +54,10 @@ public class manager extends config {
 
     public void download(String in) throws Exception {
         var path = downloads_dir + label_folder.get(label_url.lastIndexOf(in)) +
-                System.getProperty("file.separator") + check.toName(in);
+                System.getProperty("file.separator") + check.UrlToName(in);
         new File(downloads_dir + label_folder.get(label_url.lastIndexOf(in))).mkdir();
 
-        batch_num(in).forEach((num) -> {
+        batch_num(in, "").forEach((num) -> {
             try {
                 batch_time(in, "").forEach((time) -> {
                     try {
@@ -59,7 +72,7 @@ public class manager extends config {
                             path_tmp = path_tmp.concat("_" + time);
                         crawl.setPath(path_tmp + ".txt");
                         crawl.save();
-                        Thread.sleep((int)Math.random()*50);
+                        Thread.sleep((long) (Math.random() * 50));
                     } catch (Exception e) {
                         System.out.println("time iterator stopped");
                     }
@@ -103,16 +116,4 @@ public class manager extends config {
         System.out.println("config.txt is reset");
     }
 
-    public void del_config(ArrayList<String> in) throws Exception {
-        if (in.get(0).matches("[0-9]+")) {
-            in.forEach((in_tmp) -> {
-                label_url.remove(in_tmp);
-                label_title.remove(in_tmp);
-                label_folder.remove(in_tmp);
-                label_tag.remove(in_tmp);
-                label_status.remove(in_tmp);
-            });
-        }
-        sync_config();
-    }
 }

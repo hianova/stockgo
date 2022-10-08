@@ -1,21 +1,27 @@
 package com.mycompany.stockgo;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.*;
 
 public class selecter extends config {
     private final ArrayList<String> queue, mark;
-    private final ArrayList<String>[] session;
+    private final ArrayList<String>[] request, session;
     boolean add_time;
 
     public selecter(ArrayList<String> in) throws Exception {
         queue = new ArrayList<>();
-        mark = new ArrayList<>();
-        session = new ArrayList[in.size()];
         queue.addAll(in);
+        mark = new ArrayList<>();
+        request = new ArrayList[in.size()];
+        session = new ArrayList[in.size()];
         add_time = false;
+
         for (var count = 0; count < in.size(); count++) {
-            session[count] = new ArrayList<String>();
+            request[count] = new ArrayList<>();
+            session[count] = new ArrayList<>();
         }
     }
 
@@ -24,32 +30,33 @@ public class selecter extends config {
         add_time = date_in;
 
         queue.forEach((que) -> {
-            var que_tmp = new ArrayList<String>(Arrays.asList(que.split("-")));
-            var date = new ArrayList<String>() {
-                {
-                    add("");
-                }
-            };
-            var request = new ArrayList<String>();
+            var que_tmp = new ArrayList<>(Arrays.asList(que.split("-")));
+            var date = new ArrayList<String>();
+            var request_tmp = new ArrayList<String>();
+            date.add("");
+
             que_tmp.forEach((tmp) -> {
                 if (tmp.trim().matches("date \\d*~\\d*"))
                     date.set(0, tmp.split(" ")[1]);
-                if (tmp.trim().matches("title ([a-zA-Z]+|[\\u4E00-\\u9FFF]+).*$"))
-                    request.addAll(Arrays.asList(tmp.split(" ")[1].split(",")));
-            });
-            batch_num(que_tmp.get(0).trim()).forEach((num) -> {
+                if (tmp.trim().matches("request ([a-zA-Z]+|[\\u4E00-\\u9FFF]+).*$"))
+                    request_tmp.addAll(Arrays.asList(tmp.split(" ")[1].split(",")));
+            });//System.out.println(request_tmp);
+            batch_num(que_tmp.get(0).trim(),"").forEach((num) -> {
                 batch_time(que_tmp.get(0).trim(), date.get(0)).forEach((time) -> {
                     var path = downloads_dir + label_folder.get(label_url.lastIndexOf(que_tmp.get(0).trim())) +
                             System.getProperty("file.separator");
                     try {
-                        path = path.concat(check.toName(que_tmp.get(0).trim()));
+                        path = path.concat(check.UrlToName(que_tmp.get(0).trim()));
                         if (que_tmp.get(0).contains("@num"))
                             path = path.concat("_" + num);
                         if (que_tmp.get(0).contains("@date"))
-                            path = path.concat("_" + time);
-                        var data_tmp = new data(path + ".txt").getdata(request);
+                            path = path.concat("_" + time);//System.out.println(path);
+                        var data_tmp = new data(path + ".txt").getData(request_tmp);//System.out.println(data_tmp);
+
+                        if (add_time)
+                            request_tmp.forEach((tmp) -> request[queue.indexOf(que)].add(tmp));
                         data_tmp.forEach((tmp) -> {
-                            if (date_in & data_tmp.indexOf(tmp) % request.size() == 0)
+                            if (date_in & data_tmp.indexOf(tmp) % request_tmp.size() == 0)
                                 session[queue.indexOf(que)].add(time);
                             session[queue.indexOf(que)].add(tmp);
                         });
@@ -61,6 +68,35 @@ public class selecter extends config {
             });
         });
         return out;
+    }
+
+    public void export(String in, boolean label_in) throws Exception {
+        var export_file = new File(in);
+        export_file.createNewFile();
+        var out_stream = new OutputStreamWriter(new FileOutputStream(in));
+        var req_tmp = Arrays.asList(request);
+        var ses_tmp = Arrays.asList(session);
+
+        if (label_in) {
+            req_tmp.forEach((tmp) -> {
+                try {
+                    var is_last = req_tmp.indexOf(tmp) == (req_tmp.size() - 1) ? "\n" : ",";
+                    out_stream.write("\"" + tmp + "\"" + is_last);
+                } catch (IOException e) {
+                    System.out.println("request can't output");
+                }
+            });
+        }
+        ses_tmp.forEach((tmp) -> {
+            try {
+                var is_last = (ses_tmp.indexOf(tmp) + 1) % ses_tmp.size() == 0 ? "\n" : ",";
+                out_stream.write("\"" + tmp + "\"" + is_last);
+            } catch (IOException e) {
+                System.out.println("session can't output");
+            }
+        });
+        out_stream.close();
+        System.out.print(export_file.getName() + " exported\n");
     }
 
     public String getMark() {

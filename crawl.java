@@ -13,11 +13,11 @@ public class crawl {
     public crawl(String in) throws Exception {
         check = new checksyn();
         tag = new URL(in).getHost().replace(".", "_");
-        file = new File(check.getDownloads_dir() + check.toName(in));
+        file = new File(check.getDownloads_dir() + check.UrlToName(in));
         trans = (HttpURLConnection) new URL(in).openConnection();
         trans.setConnectTimeout(100);
         trans.setRequestProperty("Referer", in);
-        trans.setRequestProperty("User-Agent", new randomUA().getUA());
+        trans.setRequestProperty("User-Agent", check.getUA());
     }
 
     public void setPath(String in) {

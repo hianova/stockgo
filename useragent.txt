@@ -1,10 +1,4 @@
-package com.mycompany.stockgo;
-
-import java.util.*;
-
-public class randomUA {
-    public String getUA() {
-        var data = new String[]{
+"UA":
                 "Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0",
                 "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)",
                 "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)",
@@ -95,7 +89,4 @@ public class randomUA {
                 "Opera/9.64 (Windows NT 6.0; U; zh-cn) Presto/2.1.1",
                 "Opera/9.64 (Windows NT 6.0; U; pl) Presto/2.1.1",
                 "Opera/9.63 (X11; Linux x86_64; U; ru) Presto/2.1.1",
-                "Opera/9.63 (X11; Linux x86_64; U; cs) Presto/2.1.1"};
-        return data[new Random().nextInt(90)];
-    }
-}
+                "Opera/9.63 (X11; Linux x86_64; U; cs) Presto/2.1.1"

@@ -1,11 +1,15 @@
 package com.mycompany.stockgo;
 
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.net.*;
 
 public class checksyn {
-
+    private final Random random;
     private final Dictionary<String, String> tag;
     private final String downloads_dir;
     private final DateTimeFormatter uni_date;
@@ -13,6 +17,7 @@ public class checksyn {
     private final String[] num_ETF;
 
     public checksyn() {
+        random = new Random();
         tag = new Hashtable<>();
         tag.put("www_twse_com_tw", "div>table");
         tag.put("www_twse_com_tw_G.P", "GET");
@@ -41,7 +46,7 @@ public class checksyn {
     }
 
 
-    public String toName(String in) throws Exception {
+    public String UrlToName(String in) throws Exception {
         String[] list = {"\\.\\w+", "_@num", "_@date", "@num", "@date"};
         var url = new URL(in).getPath();
         for (var tmp : list) {
@@ -52,31 +57,18 @@ public class checksyn {
         return out;
     }
 
-    public void renew_list() throws Exception {
-        String[] list = new String[]{
-                "https://isin.twse.com.tw/isin/C_public.jsp?strMode=2",
-                "https://isin.twse.com.tw/isin/C_public.jsp?strMode=4",
-                "https://isin.twse.com.tw/isin/C_public.jsp?strMode=7",};
-
-        for (var tmp : list) {
-            var crawl = new crawl(tmp);
-            crawl.setPath(System.getProperty("user.dir") + System.getProperty("file.separator") + toName(tmp) + ".txt");
-            crawl.save();
-        }
-    }
-
     public String getTag(String in) {
         var out = tag.get(in);
         return out;
     }
 
-    public ArrayList<String> getstocknum() {
+    public ArrayList<String> getStock_num() {
         var out = new ArrayList<String>();
         Collections.addAll(out, num_stock);
         return out;
     }
 
-    public ArrayList<String> getETFnum() {
+    public ArrayList<String> getETF_num() {
         var out = new ArrayList<String>();
         Collections.addAll(out, num_ETF);
         return out;
@@ -89,6 +81,21 @@ public class checksyn {
 
     public DateTimeFormatter getUni_date() {
         var out = uni_date;
+        return out;
+    }
+
+    public String getUA() throws Exception {
+        var out = "";
+        var file = new BufferedReader(new FileReader(System.getProperty("user.dir") +
+                System.getProperty("file.separator") + "useragent.txt"));
+        var file_tmp = "";
+
+        for (var tmp = ""; (tmp = file.readLine()) != null; ) {
+            file_tmp = file_tmp.concat(tmp + "\n");
+        }
+        file.close();
+        var UA = file_tmp.replaceAll("\"", "").split(",");
+        out = UA[random.nextInt(UA.length)].trim();
         return out;
     }
 }

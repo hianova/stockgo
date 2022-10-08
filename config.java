@@ -26,7 +26,7 @@ public class config {
         var input = new BufferedReader(new FileReader(downloads_dir + "config.txt"));
 
         for (String input_tmp; (input_tmp = input.readLine()) != null; ) {
-            var tmp = input_tmp.replace("\"", "").split(","); //System.out.println(Arrays.toString(tmp));
+            var tmp = input_tmp.replace("\"", "").split(",");
             if (label.isEmpty()) {
                 label.addAll(Arrays.asList(tmp));
                 continue;
@@ -56,7 +56,7 @@ public class config {
         }
         var is_DC = Pattern.compile("yyyy").matcher(tag_tmp[1]).find();
         var st_ed_tmp = (st_ed.matches("\\d*~\\d*") ? st_ed :
-                label_status.get(session)+"~"+LocalDate.now().format(uni_date)).split("~");
+                label_status.get(session) + "~" + LocalDate.now().format(uni_date)).split("~");
 
         for (var date_tmp = LocalDate.parse(st_ed_tmp[0], uni_date);
              date_tmp.isBefore(LocalDate.parse(st_ed_tmp[1], uni_date)); ) {
@@ -72,18 +72,26 @@ public class config {
         return out;
     }
 
-    public ArrayList<String> batch_num(String in) {
+    public ArrayList<String> batch_num(String in, String select_num_in) {
         var out = new ArrayList<String>();
         if (!in.contains("@num")) {
             out.add("null");
             return out;
         }
+        if (select_num_in.matches("(\\w+|\\w+(,\\w+)+)")) {
+            var tmp = Pattern.compile("\\w+").matcher(select_num_in);
+            for (int count = 0; count < tmp.groupCount(); count++) {
+                out.add(tmp.group(count));
+            }
+            return out;
+        }
+
         var tmp = Pattern.compile("@num:\\w*")
                 .matcher("in").group().split(":");
 
         switch (tmp[1]) {
-            case "stock" -> out = check.getstocknum();
-            case "ETF" -> out = check.getETFnum();
+            case "stock" -> out = check.getStock_num();
+            case "ETF" -> out = check.getETF_num();
         }
         return out;
     }
