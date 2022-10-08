@@ -1,15 +1,13 @@
 package com.mycompany.stockgo;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.*;
 
 public class selecter extends config {
     private final ArrayList<String> queue, mark;
-    private final ArrayList<String>[] request, session;
-    boolean add_time;
+    private final ArrayList[] request;
+    private final ArrayList[] session;
+    private boolean add_time;
 
     public selecter(ArrayList<String> in) throws Exception {
         queue = new ArrayList<>();
@@ -41,31 +39,35 @@ public class selecter extends config {
                 if (tmp.trim().matches("request ([a-zA-Z]+|[\\u4E00-\\u9FFF]+).*$"))
                     request_tmp.addAll(Arrays.asList(tmp.split(" ")[1].split(",")));
             });//System.out.println(request_tmp);
-            batch_num(que_tmp.get(0).trim(),"").forEach((num) -> {
-                batch_time(que_tmp.get(0).trim(), date.get(0)).forEach((time) -> {
-                    var path = downloads_dir + label_folder.get(label_url.lastIndexOf(que_tmp.get(0).trim())) +
-                            System.getProperty("file.separator");
-                    try {
-                        path = path.concat(check.UrlToName(que_tmp.get(0).trim()));
-                        if (que_tmp.get(0).contains("@num"))
-                            path = path.concat("_" + num);
-                        if (que_tmp.get(0).contains("@date"))
-                            path = path.concat("_" + time);//System.out.println(path);
-                        var data_tmp = new data(path + ".txt").getData(request_tmp);//System.out.println(data_tmp);
+            try {
+                batch_num(que_tmp.get(0).trim(), "").forEach((num) -> {
+                    batch_time(que_tmp.get(0).trim(), date.get(0)).forEach((time) -> {
+                        var path = downloads_dir + label_folder.get(label_url.lastIndexOf(que_tmp.get(0).trim())) +
+                                System.getProperty("file.separator");
+                        try {
+                            path = path.concat(check.UrlToName(que_tmp.get(0).trim()));
+                            if (que_tmp.get(0).contains("@num"))
+                                path = path.concat("_" + num);
+                            if (que_tmp.get(0).contains("@date"))
+                                path = path.concat("_" + time);//System.out.println(path);
+                            var data_tmp = new data(path + ".txt").getData(request_tmp);//System.out.println(data_tmp);
 
-                        if (add_time)
-                            request_tmp.forEach((tmp) -> request[queue.indexOf(que)].add(tmp));
-                        data_tmp.forEach((tmp) -> {
-                            if (date_in & data_tmp.indexOf(tmp) % request_tmp.size() == 0)
-                                session[queue.indexOf(que)].add(time);
-                            session[queue.indexOf(que)].add(tmp);
-                        });
-                        out.addAll(session[queue.indexOf(que)]);
-                    } catch (Exception e) {
-                        System.out.println("data not found");
-                    }
+                            if (add_time)
+                                request_tmp.forEach((tmp) -> request[queue.indexOf(que)].add(tmp));
+                            data_tmp.forEach((tmp) -> {
+                                if (date_in & data_tmp.indexOf(tmp) % request_tmp.size() == 0)
+                                    session[queue.indexOf(que)].add(time);
+                                session[queue.indexOf(que)].add(tmp);
+                            });
+                            out.addAll(session[queue.indexOf(que)]);
+                        } catch (Exception e) {
+                            System.out.println("data not found");
+                        }
+                    });
                 });
-            });
+            } catch (Exception e) {
+                System.out.println("number list not found");
+            }
         });
         return out;
     }
@@ -74,8 +76,8 @@ public class selecter extends config {
         var export_file = new File(in);
         export_file.createNewFile();
         var out_stream = new OutputStreamWriter(new FileOutputStream(in));
-        var req_tmp = Arrays.asList(request);
-        var ses_tmp = Arrays.asList(session);
+        List<ArrayList> req_tmp = Arrays.asList(request);
+        List<ArrayList> ses_tmp = Arrays.asList(session);
 
         if (label_in) {
             req_tmp.forEach((tmp) -> {

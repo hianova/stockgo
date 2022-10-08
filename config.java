@@ -16,7 +16,7 @@ public class config {
 
         check = new checksyn();
         downloads_dir = check.getDownloads_dir();
-        uni_date = check.getUni_date();
+        uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
         label = new ArrayList<>();
         label_url = new ArrayList<>();
         label_title = new ArrayList<>();
@@ -72,7 +72,7 @@ public class config {
         return out;
     }
 
-    public ArrayList<String> batch_num(String in, String select_num_in) {
+    public ArrayList<String> batch_num(String in, String select_num_in) throws Exception {
         var out = new ArrayList<String>();
         if (!in.contains("@num")) {
             out.add("null");
