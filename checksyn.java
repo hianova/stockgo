@@ -3,6 +3,7 @@ package com.mycompany.stockgo;
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.util.regex.Pattern;
 
 public class checksyn {
     private final Random random;
@@ -45,19 +46,34 @@ public class checksyn {
 
     public ArrayList<String> getStock_num() throws Exception {
         var out = new ArrayList<String>();
-        if (num_stock.isEmpty())
-            num_stock = new data(downloads_dir + "上市股票" + System.getProperty("file.separator") +
-                    "isin_C_public.txt").getData(new ArrayList<>(List.of("有價證券代號及名稱")));
+        var pattern = Pattern.compile("\\d{4} ([\\u4e00-\\u9fa5]|[a-zA-Z])+");
 
+        if (num_stock.isEmpty()) {
+            new data(downloads_dir + "上市股票代號" + System.getProperty("file.separator") +
+                    "isin_C_public.txt").getData(new ArrayList<>(List.of("有價證券代號及名稱"))).forEach((tmp) -> {
+                if (pattern.matcher(tmp).find())
+                    num_stock.add(pattern.matcher(tmp).group());
+            });
+            new data(downloads_dir + "上櫃股票代號" + System.getProperty("file.separator") +
+                    "isin_C_public.txt").getData(new ArrayList<>(List.of("有價證券代號及名稱"))).forEach((tmp) -> {
+                if (pattern.matcher(tmp).find())
+                    num_stock.add(pattern.matcher(tmp).group());
+            });
+        }
         out = num_stock;
         return out;
     }
 
     public ArrayList<String> getETF_num() throws Exception {
         var out = new ArrayList<String>();
+        var pattern = Pattern.compile("T\\d{4}\\w ([\\u4e00-\\u9fa5]|[a-zA-Z])+");
+
         if (num_ETF.isEmpty())
-            num_ETF = new data(downloads_dir + "投資信託基金" + System.getProperty("file.separator") +
-                    "isin_C_public.txt").getData(new ArrayList<>(List.of("有價證券代號及名稱")));
+            new data(downloads_dir + "基金＿國際證券代號" + System.getProperty("file.separator") +
+                    "isin_C_public.txt").getData(new ArrayList<>(List.of("有價證券代號及名稱"))).forEach((tmp) -> {
+                if (pattern.matcher(tmp).find())
+                    num_stock.add(pattern.matcher(tmp).group());
+            });
         out = num_ETF;
         return out;
     }

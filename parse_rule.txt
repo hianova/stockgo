@@ -10,3 +10,7 @@
 "pchome_megatime_com_tw_encode":"UTF-8"
 "pchome_megatime_com_tw_head":"div#bttb>table>tbody>tr>th"
 "pchome_megatime_com_tw_body":"div#bttb>table>tbody"
+"isin.twse.com.tw":"body>table.h4"
+"isin.twse.com.tw_encode":"UTF-8"
+"isin.twse.com.tw_head":"body>table.h4>tbody>tr:eq(0)>td"
+"isin.twse.com.tw_body":"div#bttb>table>tbody>tr:gt(0)"
