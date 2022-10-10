@@ -50,12 +50,12 @@ public class checksyn {
 
         if (num_stock.isEmpty()) {
             new data(downloads_dir + "上市股票代號" + System.getProperty("file.separator") +
-                    "isin_C_public.txt").getData(new ArrayList<>(List.of("有價證券代號及名稱"))).forEach((tmp) -> {
+                    "isin_C_public.txt",new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
                 if (pattern.matcher(tmp).find())
                     num_stock.add(pattern.matcher(tmp).group());
             });
             new data(downloads_dir + "上櫃股票代號" + System.getProperty("file.separator") +
-                    "isin_C_public.txt").getData(new ArrayList<>(List.of("有價證券代號及名稱"))).forEach((tmp) -> {
+                    "isin_C_public.txt",new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
                 if (pattern.matcher(tmp).find())
                     num_stock.add(pattern.matcher(tmp).group());
             });
@@ -70,7 +70,7 @@ public class checksyn {
 
         if (num_ETF.isEmpty())
             new data(downloads_dir + "基金＿國際證券代號" + System.getProperty("file.separator") +
-                    "isin_C_public.txt").getData(new ArrayList<>(List.of("有價證券代號及名稱"))).forEach((tmp) -> {
+                    "isin_C_public.txt",new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
                 if (pattern.matcher(tmp).find())
                     num_stock.add(pattern.matcher(tmp).group());
             });
@@ -95,6 +95,30 @@ public class checksyn {
         file.close();
         var UA = file_tmp.replaceAll("\"", "").split(",");
         out = UA[random.nextInt(UA.length)].trim();
+        return out;
+    }
+
+    public String getProxy() throws Exception {
+        var out = "";
+        var list = new BufferedReader(new FileReader(System.getProperty("user.dir") +
+                System.getProperty("file.separator") + "proxy_list.txt"));
+        var list_tmp = new ArrayList<String>();
+
+        for (var tmp = ""; (tmp = list.readLine()) != null; ) {
+            list_tmp.add(tmp);
+        }
+        for (var count = random.nextInt(100); count < list_tmp.size(); count++) {
+            var count_tmp = count + random.nextInt(list_tmp.size() - count);
+            var tmp = list_tmp.get(count_tmp).split(":");
+
+            try (Socket socket = new Socket()) {
+                socket.connect(new InetSocketAddress(tmp[0], Integer.parseInt(tmp[1])), 300);
+            } catch (Exception e) {
+                continue;
+            }
+            out = list_tmp.get(count);
+            break;
+        }
         return out;
     }
 }

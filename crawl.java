@@ -3,19 +3,21 @@ package com.mycompany.stockgo;
 import java.net.*;
 import java.io.*;
 
-public class crawl {
+public class crawl extends Thread{
 
     private final checksyn check;
     private final String tag;
     private File file;
     private final HttpURLConnection trans;
 
-    public crawl(String in) throws Exception {
+    public crawl(String in)  throws Exception {
         check = new checksyn();
         tag = new URL(in).getHost().replace(".", "_");
         file = new File(check.getDownloads_dir() + check.UrlToName(in));
-        trans = (HttpURLConnection) new URL(in).openConnection();
-        trans.setConnectTimeout(100);
+        var proxy = check.getProxy().split(":");
+        trans = (HttpURLConnection) new URL(in)
+                .openConnection(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1]))));
+        trans.setConnectTimeout(300);
         trans.setRequestProperty("Referer", in);
         trans.setRequestProperty("User-Agent", check.getUA());
     }
@@ -35,6 +37,14 @@ public class crawl {
         trans_input.close();
         file_out.close();
         System.out.print(file.getName() + " saved\n");
+    }
+
+    public void run() {
+        try {
+            save();
+        } catch (Exception e) {
+            System.out.println("file not saved");
+        }
     }
 
     public String getTag() {

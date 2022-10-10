@@ -71,8 +71,8 @@ public class manager extends config {
                         if (in.contains("@date"))
                             path_tmp = path_tmp.concat("_" + time);
                         crawl.setPath(path_tmp + ".txt");
-                        crawl.save();
-                        Thread.sleep((long) (Math.random() * 50));
+                        crawl.run();
+                        Thread.sleep((long) (Math.random() * 10000));
                     } catch (Exception e) {
                         System.out.println("time iterator stopped");
                     }

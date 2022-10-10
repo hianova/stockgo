@@ -50,7 +50,7 @@ public class selecter extends config {
                                 path = path.concat("_" + num);
                             if (que_tmp.get(0).contains("@date"))
                                 path = path.concat("_" + time);//System.out.println(path);
-                            var data_tmp = new data(path + ".txt").getData(request_tmp);//System.out.println(data_tmp);
+                            var data_tmp = new data(path + ".txt",request_tmp).getData();//System.out.println(data_tmp);
 
                             if (add_time)
                                 request_tmp.forEach((tmp) -> request[queue.indexOf(que)].add(tmp));

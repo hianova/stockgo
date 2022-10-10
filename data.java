@@ -2,20 +2,24 @@ package com.mycompany.stockgo;
 
 import java.io.*;
 import java.util.*;
+
 import org.jsoup.*;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class data {
+public class data extends Thread {
     private final File file;
     private final checksyn check;
     private final String tag;
+
+    private final ArrayList<String> request;
     private Elements head, body;
 
-    public data(String in) throws Exception {
+    public data(String in, ArrayList<String> request_in) throws Exception {
         file = new File(in);
         check = new checksyn();
         tag = Jsoup.parse(file, "UTF-8").select("tag").text();
+        request = request_in;
         var parse = Jsoup.parse(file, check.getTag(tag + "_encode"));
         head = parse.select(check.getTag(tag + "_head"));
         body = parse.select(check.getTag(tag + "_body"));
@@ -28,7 +32,7 @@ public class data {
         }
     }
 
-    public ArrayList<String> getData(ArrayList<String> in) {
+    public ArrayList<String> getData() {
         var out = new ArrayList<String>();
 
         body.forEach((body_tmp) -> {
@@ -38,7 +42,7 @@ public class data {
                             body_tmp.text().contains("總計"))
                 return;
 
-            in.forEach((in_tmp) -> {
+            request.forEach((in_tmp) -> {
                 var count = head.eachText().indexOf(in_tmp);
                 var tmp = (body_tmp.child(count).select("td").text());
 
@@ -48,6 +52,10 @@ public class data {
             });
         });
         return out;
+    }
+
+    public void run() {
+        getData();
     }
 
     public String getTag() {
