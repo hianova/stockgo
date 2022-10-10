@@ -42,7 +42,7 @@ public class manager extends config {
                 try {
                     System.out.println("updating...");
                     download(label_url.get(label_status.indexOf(tmp)));
-                    label_status.set(label_status.indexOf(tmp), "\"" + LocalDate.now().format(uni_date) + "\"");
+                    label_status.set(label_status.indexOf(tmp), LocalDate.now().format(uni_date));
                     sync_config();
                 } catch (Exception e) {
                     System.out.println("update has suspend");
@@ -72,7 +72,7 @@ public class manager extends config {
                             path_tmp = path_tmp.concat("_" + time);
                         crawl.setPath(path_tmp + ".txt");
                         crawl.run();
-                        Thread.sleep((long) (Math.random() * 10000));
+                        Thread.sleep((long) (Math.random() * 5000));
                     } catch (Exception e) {
                         System.out.println("time iterator stopped");
                     }

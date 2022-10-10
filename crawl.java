@@ -2,24 +2,32 @@ package com.mycompany.stockgo;
 
 import java.net.*;
 import java.io.*;
+import java.net.URL;
+import java.security.cert.*;
+import javax.net.ssl.*;
 
-public class crawl extends Thread{
+public class crawl extends Thread {
 
     private final checksyn check;
     private final String tag;
     private File file;
-    private final HttpURLConnection trans;
+    private final HttpsURLConnection trans;
 
-    public crawl(String in)  throws Exception {
+    public crawl(String in) throws Exception {
         check = new checksyn();
         tag = new URL(in).getHost().replace(".", "_");
-        file = new File(check.getDownloads_dir() + check.UrlToName(in));
-        var proxy = check.getProxy().split(":");
-        trans = (HttpURLConnection) new URL(in)
-                .openConnection(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1]))));
+        file = new File(check.getDownloads_dir() + check.UrlToName(in) + ".txt");
+        trans = (HttpsURLConnection) new URL(in)
+                .openConnection();//new Proxy(Proxy.Type.HTTP, check.getProxy()));
         trans.setConnectTimeout(300);
         trans.setRequestProperty("Referer", in);
         trans.setRequestProperty("User-Agent", check.getUA());
+        var sc = SSLContext.getInstance("TLSv1.2", "SunJSSE");
+        sc.init(null, new TrustManager[]{new TrustManager()},
+                new java.security.SecureRandom());
+        HostnameVerifier ignoreHostnameVerifier = (s, sslsession) -> true;
+        trans.setDefaultHostnameVerifier(ignoreHostnameVerifier);
+        trans.setDefaultSSLSocketFactory(sc.getSocketFactory());
     }
 
     public void setPath(String in) {
@@ -43,12 +51,36 @@ public class crawl extends Thread{
         try {
             save();
         } catch (Exception e) {
-            System.out.println("file not saved");
+            throw new RuntimeException(e);
         }
     }
 
     public String getTag() {
         var out = tag;
         return out;
+    }
+
+    public HttpURLConnection getTrans() {
+        var out = trans;
+        return out;
+    }
+
+}
+
+class TrustManager implements X509TrustManager {
+
+    @Override
+    public void checkClientTrusted(X509Certificate certificates[],
+                                   String authType) throws CertificateException {
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] ax509certificate,
+                                   String s) throws CertificateException {
+    }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers() {
+        return null;
     }
 }

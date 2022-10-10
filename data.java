@@ -2,25 +2,22 @@ package com.mycompany.stockgo;
 
 import java.io.*;
 import java.util.*;
-
+import java.util.regex.Pattern;
 import org.jsoup.*;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class data extends Thread {
-    private final File file;
-    private final checksyn check;
-    private final String tag;
-
-    private final ArrayList<String> request;
+    private final ArrayList<String> request, export_date;
     private Elements head, body;
 
     public data(String in, ArrayList<String> request_in) throws Exception {
-        file = new File(in);
-        check = new checksyn();
-        tag = Jsoup.parse(file, "UTF-8").select("tag").text();
-        request = request_in;
+        var file = new File(in);
+        var tag = Jsoup.parse(file, "UTF-8").select("tag").text();
+        var check = new checksyn();
         var parse = Jsoup.parse(file, check.getTag(tag + "_encode"));
+        request = request_in;
+        export_date = new ArrayList<String>();
         head = parse.select(check.getTag(tag + "_head"));
         body = parse.select(check.getTag(tag + "_body"));
 
@@ -34,23 +31,18 @@ public class data extends Thread {
 
     public ArrayList<String> getData() {
         var out = new ArrayList<String>();
+        var skip_list = Pattern.compile("(合計｜小計｜總計)");
 
         body.forEach((body_tmp) -> {
-            if (
-                    body_tmp.text().contains("合計") |
-                            body_tmp.text().contains("小計") |
-                            body_tmp.text().contains("總計"))
+            if (skip_list.matcher(body_tmp.text()).find())
                 return;
-
-            request.forEach((in_tmp) -> {
-                var count = head.eachText().indexOf(in_tmp);
-                var tmp = (body_tmp.child(count).select("td").text());
-
-                if (tmp.isEmpty()) {
-                    tmp = "null";
-                }
+            request.forEach((request_tmp) -> {
+                var count = head.eachText().indexOf(request_tmp);
+                var tmp = body_tmp.child(count).select("td").text();
+                out.add(tmp.isEmpty() ? "null" : tmp);
             });
         });
+        export_date.addAll(out);
         return out;
     }
 
@@ -58,18 +50,19 @@ public class data extends Thread {
         getData();
     }
 
-    public String getTag() {
-        var out = tag;
+    public ArrayList<String> getExport_data() {
+        var out = export_date;
         return out;
     }
 
-    public String getHead() {
-        var out = head.stream().toString();
+    public ArrayList<Element> getHead() {
+        var out = head;
         return out;
     }
 
-    public String getBody() {
-        var out = body.select("td").text();
+    public ArrayList<Element> getBody() {
+        var out = body;
         return out;
     }
+
 }

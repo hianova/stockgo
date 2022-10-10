@@ -19,12 +19,13 @@ public class checksyn {
         num_stock = new ArrayList<>();
         num_ETF = new ArrayList<>();
 
-        var file = new BufferedReader(new FileReader(System.getProperty("user.dir") +
+        var parse_rule = new BufferedReader(new FileReader(System.getProperty("user.dir") +
                 System.getProperty("file.separator") + "parse_rule.txt"));
-        for (var file_tmp = ""; (file_tmp = file.readLine()) != null; ) {
-            var tmp = file_tmp.trim().replaceAll("\"", "").split(":");
-            tag.put(tmp[0], tmp[1]);
+        for (var parse_tmp = ""; (parse_tmp = parse_rule.readLine()) != null; ) {
+            var tmp = parse_tmp.split("\":\"");
+            tag.put(tmp[0].replaceAll("\"", ""), tmp[1].replaceAll("\"", ""));
         }
+
 
     }
 
@@ -46,18 +47,18 @@ public class checksyn {
 
     public ArrayList<String> getStock_num() throws Exception {
         var out = new ArrayList<String>();
-        var pattern = Pattern.compile("\\d{4} ([\\u4e00-\\u9fa5]|[a-zA-Z])+");
+        var pattern = Pattern.compile("^[0-9]{4}　");
 
         if (num_stock.isEmpty()) {
-            new data(downloads_dir + "上市股票代號" + System.getProperty("file.separator") +
-                    "isin_C_public.txt",new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
+            new data(downloads_dir + "上市證券代號" + System.getProperty("file.separator") +
+                    "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
                 if (pattern.matcher(tmp).find())
-                    num_stock.add(pattern.matcher(tmp).group());
+                    num_stock.add(tmp.split("　")[0]);
             });
-            new data(downloads_dir + "上櫃股票代號" + System.getProperty("file.separator") +
-                    "isin_C_public.txt",new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
+            new data(downloads_dir + "上櫃證券代號" + System.getProperty("file.separator") +
+                    "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
                 if (pattern.matcher(tmp).find())
-                    num_stock.add(pattern.matcher(tmp).group());
+                    num_stock.add(tmp.split("　")[0]);
             });
         }
         out = num_stock;
@@ -66,13 +67,13 @@ public class checksyn {
 
     public ArrayList<String> getETF_num() throws Exception {
         var out = new ArrayList<String>();
-        var pattern = Pattern.compile("T\\d{4}\\w ([\\u4e00-\\u9fa5]|[a-zA-Z])+");
+        var pattern = Pattern.compile("^T[0-9]+\\w");
 
         if (num_ETF.isEmpty())
             new data(downloads_dir + "基金＿國際證券代號" + System.getProperty("file.separator") +
-                    "isin_C_public.txt",new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
+                    "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
                 if (pattern.matcher(tmp).find())
-                    num_stock.add(pattern.matcher(tmp).group());
+                    num_ETF.add(tmp.split("　")[0]);
             });
         out = num_ETF;
         return out;
@@ -87,19 +88,16 @@ public class checksyn {
         var out = "";
         var file = new BufferedReader(new FileReader(System.getProperty("user.dir") +
                 System.getProperty("file.separator") + "useragent.txt"));
-        var file_tmp = "";
-
+        var UA = new ArrayList<String>();
         for (var tmp = ""; (tmp = file.readLine()) != null; ) {
-            file_tmp = file_tmp.concat(tmp + "\n");
+            UA.add(tmp);
         }
-        file.close();
-        var UA = file_tmp.replaceAll("\"", "").split(",");
-        out = UA[random.nextInt(UA.length)].trim();
+        out = UA.get(random.nextInt(UA.size()));
         return out;
     }
 
-    public String getProxy() throws Exception {
-        var out = "";
+    public InetSocketAddress getProxy() throws Exception {
+        var out = new InetSocketAddress(0);
         var list = new BufferedReader(new FileReader(System.getProperty("user.dir") +
                 System.getProperty("file.separator") + "proxy_list.txt"));
         var list_tmp = new ArrayList<String>();
@@ -110,13 +108,14 @@ public class checksyn {
         for (var count = random.nextInt(100); count < list_tmp.size(); count++) {
             var count_tmp = count + random.nextInt(list_tmp.size() - count);
             var tmp = list_tmp.get(count_tmp).split(":");
+            var address = new InetSocketAddress(tmp[0], Integer.parseInt(tmp[1]));
 
             try (Socket socket = new Socket()) {
-                socket.connect(new InetSocketAddress(tmp[0], Integer.parseInt(tmp[1])), 300);
+                socket.connect(address, 200);
             } catch (Exception e) {
                 continue;
             }
-            out = list_tmp.get(count);
+            out = address;
             break;
         }
         return out;
