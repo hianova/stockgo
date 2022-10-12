@@ -3,28 +3,27 @@ package com.mycompany.stockgo;
 import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
+
 import org.jsoup.*;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class data extends Thread {
-    private final ArrayList<String> request, export_date;
+    private ArrayList<String> request, export_date;
     private Elements head, body;
 
     public data(String in, ArrayList<String> request_in) throws Exception {
-        var file = new File(in);
-        var tag = Jsoup.parse(file, "UTF-8").select("tag").text();
+        var tag = Jsoup.parse(in, "UTF-8").select("tag").text();
         var check = new checksyn();
-        var parse = Jsoup.parse(file, check.getTag(tag + "_encode"));
+        var parse = Jsoup.parse(in, check.getTag(tag + "_encode"));
         request = request_in;
-        export_date = new ArrayList<String>();
         head = parse.select(check.getTag(tag + "_head"));
         body = parse.select(check.getTag(tag + "_body"));
 
         if ("mops_twse_com_tw".equals(tag)) {
             head.add(new Element("th").text("備註"));
         }
-        if (file.getName().contains("etfDiv")) {
+        if (in.contains("etfDiv")) {
             head = parse.select("thead>tr>th");
         }
     }
@@ -42,26 +41,15 @@ public class data extends Thread {
                 out.add(tmp.isEmpty() ? "null" : tmp);
             });
         });
-        export_date.addAll(out);
-        return out;
+        return (export_date = out);
     }
 
     public void run() {
         getData();
     }
 
-    public ArrayList<String> getExport_data() {
+    public ArrayList<String> getExport_date() {
         var out = export_date;
-        return out;
-    }
-
-    public ArrayList<Element> getHead() {
-        var out = head;
-        return out;
-    }
-
-    public ArrayList<Element> getBody() {
-        var out = body;
         return out;
     }
 

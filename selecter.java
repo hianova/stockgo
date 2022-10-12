@@ -34,9 +34,9 @@ public class selecter extends config {
             date.add("");
 
             que_tmp.forEach((tmp) -> {
-                if (tmp.trim().matches("date \\d*~\\d*"))
+                if (tmp.trim().matches("date \\d+~\\d+"))
                     date.set(0, tmp.split(" ")[1]);
-                if (tmp.trim().matches("request ([a-zA-Z]+|[\\u4E00-\\u9FFF]+).*$"))
+                if (tmp.trim().matches("request \\w.*$"))
                     request_tmp.addAll(Arrays.asList(tmp.split(" ")[1].split(",")));
             });//System.out.println(request_tmp);
             try {
@@ -73,11 +73,10 @@ public class selecter extends config {
     }
 
     public void export(String in, boolean label_in) throws Exception {
-        var export_file = new File(in);
-        export_file.createNewFile();
         var out_stream = new OutputStreamWriter(new FileOutputStream(in));
-        List<ArrayList> req_tmp = Arrays.asList(request);
-        List<ArrayList> ses_tmp = Arrays.asList(session);
+        var req_tmp = Arrays.asList(request);
+        var ses_tmp = Arrays.asList(session);
+        new File(in).createNewFile();
 
         if (label_in) {
             req_tmp.forEach((tmp) -> {
@@ -98,7 +97,6 @@ public class selecter extends config {
             }
         });
         out_stream.close();
-        System.out.print(export_file.getName() + " exported\n");
     }
 
     public String getMark() {

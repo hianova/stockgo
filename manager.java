@@ -61,18 +61,16 @@ public class manager extends config {
             try {
                 batch_time(in, "").forEach((time) -> {
                     try {
-                        var in_tmp = in
-                                .replaceAll("@date", time)
-                                .replaceAll("@num", num);
-                        var crawl = new crawl(in_tmp);
+                        var crawl = new crawl(in.replaceAll("@date", time)
+                                .replaceAll("@num", num));
                         var path_tmp = path;
                         if (in.contains("@num"))
                             path_tmp = path_tmp.concat("_" + num);
                         if (in.contains("@date"))
                             path_tmp = path_tmp.concat("_" + time);
-                        crawl.setPath(path_tmp + ".txt");
+                        crawl.setPath(path_tmp +".txt");
                         crawl.run();
-                        Thread.sleep((long) (Math.random() * 5000));
+                        Thread.sleep((long) (Math.random() * 2500));
                     } catch (Exception e) {
                         System.out.println("time iterator stopped");
                     }
@@ -84,8 +82,8 @@ public class manager extends config {
     }
 
     public void sync_config() throws Exception {
-        var output = new BufferedWriter(new FileWriter(
-                downloads_dir + "config.txt", false));
+        var output = new BufferedWriter(new FileWriter(downloads_dir +
+                "config.txt", false));
         var last_ele = label.get(label.size() - 1);
 
         label.forEach((tmp) -> {
@@ -110,6 +108,7 @@ public class manager extends config {
         var last_ele = list[list.length - 1];
         var output = new BufferedWriter(new FileWriter(
                 downloads_dir + "config.txt", false));
+
         for (var tmp : list)
             output.write("\"" + tmp + "\"" + (tmp.contains(last_ele) ? "\n" : ","));
         output.close();

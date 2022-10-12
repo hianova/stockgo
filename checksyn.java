@@ -45,6 +45,21 @@ public class checksyn {
         return out;
     }
 
+    public ArrayList<String> getNum(String in) throws Exception{
+        var out = new ArrayList<String>();
+        switch (in) {
+            case "stock": {
+                out.addAll(new checksyn().getStock_num());
+                break;
+            }
+            case "ETF": {
+                out.addAll(new checksyn().getETF_num());
+                break;
+            }
+        }
+        return out;
+    }
+
     public ArrayList<String> getStock_num() throws Exception {
         var out = new ArrayList<String>();
         var pattern = Pattern.compile("^[0-9]{4}　");

@@ -2,7 +2,6 @@ package com.mycompany.stockgo;
 
 import java.io.*;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -54,9 +53,9 @@ public class config {
                 break;
             }
         }
-        var is_DC = Pattern.compile("yyyy").matcher(tag_tmp[1]).find();
-        var st_ed_tmp = (st_ed.matches("\\d*~\\d*") ? st_ed :
-                label_status.get(session) + "~" + LocalDate.now().format(uni_date)).split("~");
+        var is_DC = tag_tmp[1].contains("yyyy");
+        var st_ed_tmp = (st_ed.matches("\\d+~\\d+") ? st_ed.split(",") :
+                new String[]{label_status.get(session), LocalDate.now().format(uni_date)});
 
         for (var date_tmp = LocalDate.parse(st_ed_tmp[0], uni_date);
              date_tmp.isBefore(LocalDate.parse(st_ed_tmp[1], uni_date)); ) {
@@ -74,27 +73,21 @@ public class config {
 
     public ArrayList<String> batch_num(String in, String select_num_in) throws Exception {
         var out = new ArrayList<String>();
+        var session = label_url.lastIndexOf(in);
         if (!in.contains("@num")) {
             out.add("null");
             return out;
         }
-        if (select_num_in.matches("(\\w+|\\w+(,\\w+)+)")) {
-            var tmp = Pattern.compile("\\w+").matcher(select_num_in);
-            for (int count = 0; count < tmp.groupCount(); count++) {
-                out.add(tmp.group(count));
+        var tag_tmp = label_tag.get(session).split("@");
+        for (var tmp : tag_tmp) {
+            if (tmp.contains("num")) {
+                tag_tmp = tmp.split(":");
+                break;
             }
-            return out;
         }
-
-        var tmp = Pattern.compile("@num:\\w*")
-                .matcher("in").group().split(":");
-
-        switch (tmp[1]) {
-            case "stock" -> out = check.getStock_num();
-            case "ETF" -> out = check.getETF_num();
-        }
+        var select_num_tmp = select_num_in.isBlank() ? check.getNum(tag_tmp[1])
+                : (ArrayList<String>) Arrays.asList(select_num_in.split(","));
+        out.addAll(select_num_tmp);
         return out;
     }
-
-
 }
