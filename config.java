@@ -9,7 +9,7 @@ public class config {
     checksyn check;
     String downloads_dir;
     DateTimeFormatter uni_date;
-    ArrayList<String> label, label_url, label_title, label_folder, label_tag, label_status;
+    protected ArrayList<String> label, label_url, label_title, label_folder, label_tag, label_status;
 
     public config() throws Exception {
 
@@ -88,6 +88,38 @@ public class config {
         var select_num_tmp = select_num_in.isBlank() ? check.getNum(tag_tmp[1])
                 : (ArrayList<String>) Arrays.asList(select_num_in.split(","));
         out.addAll(select_num_tmp);
+        return out;
+    }
+
+    public ArrayList<String> get_config_label() {
+        var out = label;
+        return out;
+    }
+
+    public ArrayList<String> getConfig() {
+        var out = new ArrayList<String>();
+        out.addAll(label);
+        out.add("\n");
+        for (var count = 0; count < label_url.size(); count++) {
+            out.add(count + ".");
+            out.add(label_url.get(count));
+            out.add(label_title.get(count));
+            out.add(label_folder.get(count));
+            out.add(label_tag.get(count));
+            out.add(label_status.get(count)  );
+            out.add("\n");
+        }
+        return out;
+    }
+
+    public ArrayList<String> search_title(String in) {
+        var out = new ArrayList<String>();
+        var session = label_title.lastIndexOf(in);
+        out.add(label_url.get(session));
+        out.add(label_title.get(session));
+        out.add(label_folder.get(session));
+        out.add(label_tag.get(session));
+        out.add(label_status.get(session));
         return out;
     }
 }

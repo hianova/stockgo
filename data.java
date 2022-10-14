@@ -48,6 +48,16 @@ public class data extends Thread {
         getData();
     }
 
+    public ArrayList<String> getHead(){
+        var out =(ArrayList<String>) head.eachText();
+        return out;
+    }
+
+    public ArrayList<String> getBody(){
+        var out =(ArrayList<String>) body.eachText();
+        return out;
+    }
+
     public ArrayList<String> getExport_date() {
         var out = export_date;
         return out;
