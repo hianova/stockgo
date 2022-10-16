@@ -12,7 +12,7 @@ public class stockgo {
     public static void main(String[] in) throws Exception {
         new manager().update();
         home_layout();
-        var match = Pattern.compile("-\\w");
+        var match = Pattern.compile("-\\w+");
         while (!(command = input.next()).matches("exit")) {
             var match_tmp = match.matcher(command);
             if (!match_tmp.find()) {
@@ -40,13 +40,13 @@ public class stockgo {
         do {
             var cmd = in_done ? command : in;
             var match = in_done ?
-                    Pattern.compile("-\\w").matcher(command) : Pattern.compile("-\\w").matcher(in);
+                    Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w+").matcher(in);
             switch (match.find() ? match.group(0) : "") {
-                case "-A" -> manager.add((ArrayList<String>) Arrays.asList
-                        (cmd.replace("-A ", "").split(",")));
+                case "-A" -> manager.add((ArrayList<String>) Arrays.asList(cmd
+                        .replace("-A ","").split(",")));
                 case "-U" -> manager.update();
                 case "-D" -> manager.delete((ArrayList<String>) Arrays.asList
-                        (cmd.replace("-A ", "").split(",")));
+                        (cmd.replace("-D ", "").split(",")));
                 case "-R" -> manager.reset_config();
                 default -> System.out.println("command not found");
             }
@@ -61,14 +61,14 @@ public class stockgo {
         do {
             var cmd = in_done ? command : in;
             var match = in_done ?
-                    Pattern.compile("-\\w").matcher(command) : Pattern.compile("-\\w").matcher(in);
+                    Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w++").matcher(in);
             switch (match.find() ? match.group(0) : "") {
-                case "-S" -> {
+                case "-D" -> {
                     var tmp = new selecter((ArrayList<String>) Arrays.asList(cmd.split(" ")[1].split(",")));
                     data = tmp.select(true);
 
                 }
-                case "-SE" -> {
+                case "-DE" -> {
                     var tmp = new selecter((ArrayList<String>) Arrays.asList(cmd.split(" ")[1].split(",")));
                     data = tmp.select(true);
                     tmp.export(cmd.split(" ")[2], true);
@@ -94,7 +94,7 @@ public class stockgo {
 
     public static void select_layout() {
         System.out.println("Select \"select\" function:");
-        System.out.println("                           -S(select data) -SE(select&export data)");
+        System.out.println("                           -D(select data) -DE(select&export data)");
     }
 
     public ArrayList<String> getData() {
