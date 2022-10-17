@@ -111,28 +111,4 @@ public class checksyn {
         return out;
     }
 
-    public InetSocketAddress getProxy() throws Exception {
-        var out = new InetSocketAddress(0);
-        var list = new BufferedReader(new FileReader(System.getProperty("user.dir") +
-                System.getProperty("file.separator") + "proxy_list.txt"));
-        var list_tmp = new ArrayList<String>();
-
-        for (var tmp = ""; (tmp = list.readLine()) != null; ) {
-            list_tmp.add(tmp);
-        }
-        for (var count = random.nextInt(100); count < list_tmp.size(); count++) {
-            var count_tmp = count + random.nextInt(list_tmp.size() - count);
-            var tmp = list_tmp.get(count_tmp).split(":");
-            var address = new InetSocketAddress(tmp[0], Integer.parseInt(tmp[1]));
-
-            try (Socket socket = new Socket()) {
-                socket.connect(address, 200);
-            } catch (Exception e) {
-                continue;
-            }
-            out = address;
-            break;
-        }
-        return out;
-    }
 }

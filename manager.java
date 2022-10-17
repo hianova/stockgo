@@ -22,23 +22,20 @@ public class manager extends config {
         System.out.println(in.get(1) + " added");
     }
 
-    public void delete(ArrayList<String> in) throws Exception {
-        if (in.get(0).matches("[0-9]+")) {
-            in.forEach((in_tmp) -> {
-                label_url.remove(in_tmp);
-                label_title.remove(in_tmp);
-                label_folder.remove(in_tmp);
-                label_tag.remove(in_tmp);
-                label_status.remove(in_tmp);
-            });
-        }
+    public void delete(int in) throws Exception {
+        label_url.remove(in);
+        label_title.remove(in);
+        label_folder.remove(in);
+        label_tag.remove(in);
+        label_status.remove(in);
+        System.out.println(in+"line deleted");
         sync_config();
     }
 
     public void update() {
         label_status.forEach((tmp) -> {
             if (Period.between(LocalDate.parse(tmp, uni_date),
-                    LocalDate.now()).getMonths() > 1) {
+                    LocalDate.now()).getDays() > 1) {
                 try {
                     System.out.println("updating...");
                     download(label_url.get(label_status.indexOf(tmp)));
@@ -68,7 +65,7 @@ public class manager extends config {
                             path_tmp = path_tmp.concat("_" + num);
                         if (in.contains("@date"))
                             path_tmp = path_tmp.concat("_" + time);
-                        crawl.setPath(path_tmp +".txt");
+                        crawl.setPath(path_tmp + ".txt");
                         crawl.run();
                         Thread.sleep((long) (Math.random() * 2500));
                     } catch (Exception e) {

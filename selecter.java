@@ -1,5 +1,6 @@
 package com.mycompany.stockgo;
 
+import javax.script.ScriptEngineManager;
 import java.io.*;
 import java.util.*;
 
@@ -99,6 +100,13 @@ public class selecter extends config {
         out_stream.close();
     }
 
+    public String getRequest() {
+        var out="";
+        for (var tmp :request){
+            out=out.concat(tmp.toString()+",");
+        }
+        return out;
+    }
     public String getMark() {
         var out = String.join(",", mark);
         return out;

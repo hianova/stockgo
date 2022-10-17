@@ -13,7 +13,7 @@ public class stockgo {
         new manager().update();
         home_layout();
         var match = Pattern.compile("-\\w+");
-        while (!(command = input.next()).matches("exit")) {
+        while (!(command = input.nextLine()).matches("exit")) {
             var match_tmp = match.matcher(command);
             if (!match_tmp.find()) {
                 System.out.println("invalid command");
@@ -45,13 +45,12 @@ public class stockgo {
                 case "-A" -> manager.add((ArrayList<String>) Arrays.asList(cmd
                         .replace("-A ","").split(",")));
                 case "-U" -> manager.update();
-                case "-D" -> manager.delete((ArrayList<String>) Arrays.asList
-                        (cmd.replace("-D ", "").split(",")));
+                case "-D" -> manager.delete(Integer.parseInt(cmd.replace("-D ", "")));
                 case "-R" -> manager.reset_config();
                 default -> System.out.println("command not found");
             }
             in_done = true;
-        } while (!(command = input.next()).matches("(home|exit)"));
+        } while (!(command = input.nextLine()).matches("(home|exit)"));
 
     }
 
@@ -61,24 +60,21 @@ public class stockgo {
         do {
             var cmd = in_done ? command : in;
             var match = in_done ?
-                    Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w++").matcher(in);
+                    Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w+").matcher(in);
             switch (match.find() ? match.group(0) : "") {
                 case "-D" -> {
                     var tmp = new selecter((ArrayList<String>) Arrays.asList(cmd.split(" ")[1].split(",")));
                     data = tmp.select(true);
-
                 }
                 case "-DE" -> {
                     var tmp = new selecter((ArrayList<String>) Arrays.asList(cmd.split(" ")[1].split(",")));
                     data = tmp.select(true);
                     tmp.export(cmd.split(" ")[2], true);
-
                 }
                 default -> System.out.println("command not found");
             }
             in_done = true;
-
-        } while (!(command = input.next()).matches("(home|exit)"));
+        } while (!(command = input.nextLine()).matches("(home|exit)"));
     }
 
     public static void home_layout() {

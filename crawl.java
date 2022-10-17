@@ -17,7 +17,7 @@ public class crawl extends Thread {
         check = new checksyn();
         tag = new URL(in).getHost().replace(".", "_");
         file = new File(check.getDownloads_dir() + check.UrlToName(in) + ".txt");
-        trans = (HttpsURLConnection) new URL(in).openConnection();//new Proxy(Proxy.Type.HTTP, check.getProxy()));
+        trans = (HttpsURLConnection) new URL(in).openConnection();
         trans.setRequestProperty("Referer", in);
         trans.setRequestProperty("User-Agent", check.getUA());
         var sc = SSLContext.getInstance("TLSv1.2", "SunJSSE");
