@@ -29,7 +29,8 @@ public class stockgo {
                     selecter(tmp);
                 }
                 default -> System.out.println("command not found");
-            }home_layout();
+            }
+            home_layout();
         }
     }
 
@@ -43,9 +44,12 @@ public class stockgo {
                     Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w+").matcher(in);
             switch (match.find() ? match.group(0) : "") {
                 case "-A" -> manager.add((ArrayList<String>) Arrays.asList(cmd
-                        .replace("-A ","").split(",")));
+                        .replace("-A ", "").split(",")));
                 case "-U" -> manager.update();
-                case "-D" -> manager.delete(Integer.parseInt(cmd.replace("-D ", "")));
+                case "-D" -> {
+                    manager.delete(Integer.parseInt(cmd.replace("-D ", "")));
+                    manage_layout();
+                }
                 case "-R" -> manager.reset_config();
                 default -> System.out.println("command not found");
             }
@@ -88,7 +92,7 @@ public class stockgo {
         System.out.println(new config().getConfig());
     }
 
-    public static void select_layout() {
+    public static void select_layout() throws Exception{
         System.out.println("Select \"select\" function:");
         System.out.println("                           -D(select data) -DE(select&export data)");
     }

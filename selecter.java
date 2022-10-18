@@ -1,10 +1,9 @@
 package com.mycompany.stockgo;
 
-import javax.script.ScriptEngineManager;
 import java.io.*;
 import java.util.*;
 
-public class selecter extends config {
+public class selecter extends config{
     private final ArrayList<String> queue, mark;
     private final ArrayList[] request;
     private final ArrayList[] session;
@@ -26,9 +25,10 @@ public class selecter extends config {
 
     public ArrayList<String> select(boolean date_in) {
         var out = new ArrayList<String>();
-        add_time = date_in;
+        add_time=date_in;
 
         queue.forEach((que) -> {
+            var thread = new Thread(()->{
             var que_tmp = new ArrayList<>(Arrays.asList(que.split("-")));
             var date = new ArrayList<String>();
             var request_tmp = new ArrayList<String>();
@@ -56,7 +56,7 @@ public class selecter extends config {
                             if (add_time)
                                 request_tmp.forEach((tmp) -> request[queue.indexOf(que)].add(tmp));
                             data_tmp.forEach((tmp) -> {
-                                if (date_in & data_tmp.indexOf(tmp) % request_tmp.size() == 0)
+                                if (add_time & data_tmp.indexOf(tmp) % request_tmp.size() == 0)
                                     session[queue.indexOf(que)].add(time);
                                 session[queue.indexOf(que)].add(tmp);
                             });
@@ -69,7 +69,9 @@ public class selecter extends config {
             } catch (Exception e) {
                 System.out.println("number list not found");
             }
-        });
+            });
+            thread.start();
+            });
         return out;
     }
 
