@@ -54,7 +54,7 @@ public class config {
             }
         }
         var is_DC = tag_tmp[1].contains("yyyy");
-        var st_ed_tmp = (st_ed.matches("\\d+~\\d+") ? st_ed.split(",") :
+        var st_ed_tmp = (st_ed.matches("\\d+~\\d+") ? st_ed.split("~") :
                 new String[]{label_status.get(session), LocalDate.now().format(uni_date)});
 
         for (var date_tmp = LocalDate.parse(st_ed_tmp[0], uni_date);
@@ -85,7 +85,7 @@ public class config {
                 break;
             }
         }
-        var select_num_tmp = select_num_in.isBlank() ? check.getNum(tag_tmp[1])
+        var select_num_tmp = select_num_in.isEmpty() ? check.getNum(tag_tmp[1])
                 : (ArrayList<String>) Arrays.asList(select_num_in.split(","));
         out.addAll(select_num_tmp);
         return out;

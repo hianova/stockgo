@@ -19,10 +19,11 @@ public class expectval {
         }};
     }
 
-    public ArrayList<String> compare(String in) {
-        var out = new ArrayList<String>();
+    public String compare(String in) {
+        var out = "";
         var in_tmp = in.split(":");
         var script = new ScriptEngineManager().getEngineByName("JavaScript");
+        plus_odd = plus_points = minus_odd = minus_points = 0;
 
         mark.forEach((mark_tmp) -> {
             var time_tmp = LocalDate.parse(data.get(mark_tmp), DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -52,6 +53,13 @@ public class expectval {
                             end = count_tmp;
                         }
                     }
+                    case "HY" -> {
+                        LocalDate tmp = null;
+                        for (var count_tmp = 0; tmp.isBefore(time_tmp.plusMonths(6)); count_tmp += 2) {
+                            tmp = LocalDate.parse(data.get(end), DateTimeFormatter.ofPattern("yyyyMMdd"));
+                            end = count_tmp;
+                        }
+                    }
                     case "Y" -> {
                         LocalDate tmp = null;
                         for (var count_tmp = 0; tmp.isBefore(time_tmp.plusYears(1)); count_tmp += 2) {
@@ -61,7 +69,6 @@ public class expectval {
                     }
                 }
                 var tmp = Integer.parseInt(data.get(end)) - Integer.parseInt(target_data.toString());
-                out.add(String.valueOf(tmp));
                 if (tmp < 0) {
                     minus_points += tmp;
                     minus_odd += 1;
@@ -76,11 +83,7 @@ public class expectval {
         });
         plus_odd = plus_odd / mark.size();
         minus_odd = minus_odd / mark.size();
-        return out;
-    }
-
-    public String getExpectval() {
-        var out = String.valueOf(plus_odd * plus_points + minus_odd * minus_points);
+        out = String.valueOf(plus_odd * plus_points + minus_odd * minus_points);
         return out;
     }
 

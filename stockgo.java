@@ -43,8 +43,8 @@ public class stockgo {
             var match = in_done ?
                     Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w+").matcher(in);
             switch (match.find() ? match.group(0) : "") {
-                case "-A" -> manager.add((ArrayList<String>) Arrays.asList(cmd
-                        .replace("-A ", "").split(",")));
+                case "-A" -> manager.add(new ArrayList<String>(Arrays.asList(cmd
+                        .replace("-A ", "").split(","))));
                 case "-U" -> manager.update();
                 case "-D" -> {
                     manager.delete(Integer.parseInt(cmd.replace("-D ", "")));
@@ -61,19 +61,45 @@ public class stockgo {
     public static void selecter(String in) throws Exception {
         select_layout();
         var in_done = false;
+        selecter session = null;
         do {
             var cmd = in_done ? command : in;
             var match = in_done ?
                     Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w+").matcher(in);
             switch (match.find() ? match.group(0) : "") {
                 case "-D" -> {
-                    var tmp = new selecter((ArrayList<String>) Arrays.asList(cmd.split(" ")[1].split(",")));
+                    var tmp = new selecter(new ArrayList<String>(Arrays.asList(cmd
+                            .replace("-D ", "").split(","))));
                     data = tmp.select(true);
+                    session = tmp;
                 }
-                case "-DE" -> {
-                    var tmp = new selecter((ArrayList<String>) Arrays.asList(cmd.split(" ")[1].split(",")));
-                    data = tmp.select(true);
-                    tmp.export(cmd.split(" ")[2], true);
+                case "-E" -> {
+                    if (data.isEmpty()) {
+                        System.out.println("please select data(-D) first");
+                        break;
+                    }
+                    session.export(cmd.replace("-E ", ""), true);
+                }
+                case "-BT" -> {
+                    if (data.isEmpty()) {
+                        System.out.println("please select data(-D) first");
+                        break;
+                    }
+                    var count = 0;
+                    for (var tmp : session.mark_exp_val()){
+                        System.out.println(count+".");
+                        System.out.println(tmp);
+                    }
+                }
+                case "-detail" -> {
+                    if (data.isEmpty()) {
+                        System.out.println("please select data(-D) first");
+                        break;
+                    }
+                    System.out.println("request:");
+                    System.out.println(session.getRequest());
+                    System.out.println("data:");
+                    System.out.println(data.subList(0, 10) + " ...");
                 }
                 default -> System.out.println("command not found");
             }
@@ -92,14 +118,9 @@ public class stockgo {
         System.out.println(new config().getConfig());
     }
 
-    public static void select_layout() throws Exception{
+    public static void select_layout() throws Exception {
         System.out.println("Select \"select\" function:");
-        System.out.println("                           -D(select data) -DE(select&export data)");
-    }
-
-    public ArrayList<String> getData() {
-        var out = data;
-        return out;
+        System.out.println("                           -D(select data) -DE(select&export data) -BT(back test data)");
     }
 
 }

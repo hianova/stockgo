@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 public class checksyn {
     private final Random random;
     private final Hashtable<String, String> tag;
-    private final String downloads_dir;
+    private final String downloads_dir,strategy_dir;
     private ArrayList<String> num_stock, num_ETF;
 
     public checksyn() throws Exception {
@@ -16,6 +16,8 @@ public class checksyn {
         tag = new Hashtable<>();
         downloads_dir = System.getProperty("user.dir") + System.getProperty("file.separator") +
                 "downloads" + System.getProperty("file.separator");
+        strategy_dir=System.getProperty("user.dir")+System.getProperty("file.separator")+
+                "strategy"+System.getProperty("file.separator");
         num_stock = new ArrayList<>();
         num_ETF = new ArrayList<>();
 
@@ -96,6 +98,11 @@ public class checksyn {
 
     public String getDownloads_dir() {
         var out = downloads_dir;
+        return out;
+    }
+
+    public String getStrategy_dir(){
+        var out =strategy_dir;
         return out;
     }
 
