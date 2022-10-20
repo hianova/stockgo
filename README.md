@@ -1,6 +1,6 @@
 # stockgo
 gather TWSE data &amp; export ex: csv  
-![alt text](https://imgur.com/a/6xiP904)  
+<blockquote class="imgur-embed-pub" lang="en" data-id="a/6xiP904" data-context="false" ><a href="//imgur.com/a/6xiP904"></a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>   
 The program consist with two part ,one for list of data source and farther detail setting,
 and the other is for gather data and export or calculate expect value.
 The checksyn is nothing more then clean up code,which hide unnessesary detail getting variabel.
