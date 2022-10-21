@@ -1,10 +1,12 @@
 package com.mycompany.stockgo;
 
-import java.io.*;
-import java.net.Proxy;
-import java.net.URL;
-import java.security.cert.*;
 import javax.net.ssl.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.security.cert.X509Certificate;
 
 public class crawl extends Thread {
 
@@ -23,8 +25,8 @@ public class crawl extends Thread {
         var sc = SSLContext.getInstance("TLSv1.2", "SunJSSE");
         sc.init(null, new TrustManager[]{new ssl_cer()}, new java.security.SecureRandom());
         HostnameVerifier ignoreHostnameVerifier = (s, ssl) -> true;
-        trans.setDefaultHostnameVerifier(ignoreHostnameVerifier);
-        trans.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        HttpsURLConnection.setDefaultHostnameVerifier(ignoreHostnameVerifier);
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
     }
 
     public void setPath(String in) {
@@ -56,7 +58,7 @@ public class crawl extends Thread {
 class ssl_cer implements X509TrustManager {
 
     @Override
-    public void checkClientTrusted(X509Certificate certificates[], String authType) {
+    public void checkClientTrusted(X509Certificate[] certificates, String authType) {
     }
 
     @Override

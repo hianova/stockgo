@@ -1,34 +1,36 @@
 package com.mycompany.stockgo;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 public class checksyn {
     private final Random random;
     private final Hashtable<String, String> tag;
-    private final String downloads_dir,strategy_dir;
-    private ArrayList<String> num_stock, num_ETF;
+    private final String downloads_dir, strategy_dir;
+    private final ArrayList<String> num_stock;
+    private final ArrayList<String> num_ETF;
 
     public checksyn() throws Exception {
         random = new Random();
         tag = new Hashtable<>();
         downloads_dir = System.getProperty("user.dir") + System.getProperty("file.separator") +
                 "downloads" + System.getProperty("file.separator");
-        strategy_dir=System.getProperty("user.dir")+System.getProperty("file.separator")+
-                "strategy"+System.getProperty("file.separator");
+        strategy_dir = System.getProperty("user.dir") + System.getProperty("file.separator") +
+                "strategy" + System.getProperty("file.separator");
         num_stock = new ArrayList<>();
         num_ETF = new ArrayList<>();
-
         var parse_rule = new BufferedReader(new FileReader(System.getProperty("user.dir") +
                 System.getProperty("file.separator") + "parse_rule.txt"));
         for (var parse_tmp = ""; (parse_tmp = parse_rule.readLine()) != null; ) {
             var tmp = parse_tmp.split("\":\"");
             tag.put(tmp[0].replaceAll("\"", ""), tmp[1].replaceAll("\"", ""));
         }
-
-
     }
 
     public String UrlToName(String in) throws Exception {
@@ -47,17 +49,11 @@ public class checksyn {
         return out;
     }
 
-    public ArrayList<String> getNum(String in) throws Exception{
+    public ArrayList<String> getNum(String in) throws Exception {
         var out = new ArrayList<String>();
         switch (in) {
-            case "stock": {
-                out.addAll(new checksyn().getStock_num());
-                break;
-            }
-            case "ETF": {
-                out.addAll(new checksyn().getETF_num());
-                break;
-            }
+            case "stock" -> out.addAll(new checksyn().getStock_num());
+            case "ETF" -> out.addAll(new checksyn().getETF_num());
         }
         return out;
     }
@@ -101,8 +97,8 @@ public class checksyn {
         return out;
     }
 
-    public String getStrategy_dir(){
-        var out =strategy_dir;
+    public String getStrategy_dir() {
+        var out = strategy_dir;
         return out;
     }
 

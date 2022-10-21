@@ -6,9 +6,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class expectval {
-    ArrayList<String> data;
-    ArrayList<Integer> mark;
-    int plus_odd, minus_odd, plus_points, minus_points;
+    private ArrayList<String> data;
+    private ArrayList<Integer> mark;
+    private int plus_odd, minus_odd, plus_points, minus_points;
 
     public expectval(ArrayList<String> in, ArrayList<Integer> mark_in) {
         data = new ArrayList<String>() {{
@@ -88,12 +88,12 @@ public class expectval {
     }
 
     public String getPlus_ref() {
-        var out = "odd:" + String.valueOf(plus_odd) + "points:" + plus_points;
+        var out = "odd:" + plus_odd + "points:" + plus_points;
         return out;
     }
 
     public String getMinus_ref() {
-        var out = "odd:" + String.valueOf(minus_odd) + "points:" + minus_points;
+        var out = "odd:" + minus_odd + "points:" + minus_points;
         return out;
     }
 }

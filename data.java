@@ -1,21 +1,22 @@
 package com.mycompany.stockgo;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import org.jsoup.*;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class data extends Thread {
-    private ArrayList<String> request, export_date;
-    private Elements head, body;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+
+public class data {
+    private final ArrayList<String> request;
+    private Elements head;
+    private final Elements body;
 
     public data(String in, ArrayList<String> request_in) throws Exception {
-        var tag = Jsoup.parse(in, "UTF-8").select("tag").text();
+        var tag = Jsoup.parse(new File(in), "UTF-8").select("tag").text();
         var check = new checksyn();
-        var parse = Jsoup.parse(in, check.getTag(tag + "_encode"));
+        var parse = Jsoup.parse(new File(in), check.getTag(tag + "_encode"));
         request = request_in;
         head = parse.select(check.getTag(tag + "_head"));
         body = parse.select(check.getTag(tag + "_body"));
@@ -41,25 +42,16 @@ public class data extends Thread {
                 out.add(tmp.isEmpty() ? "null" : tmp);
             });
         });
-        return (export_date = out);
-    }
-
-    public void run() {
-        getData();
-    }
-
-    public ArrayList<String> getHead(){
-        var out =(ArrayList<String>) head.eachText();
         return out;
     }
 
-    public ArrayList<String> getBody(){
-        var out =(ArrayList<String>) body.eachText();
+    public ArrayList<String> getHead() {
+        var out = (ArrayList<String>) head.eachText();
         return out;
     }
 
-    public ArrayList<String> getExport_date() {
-        var out = export_date;
+    public ArrayList<String> getBody() {
+        var out = (ArrayList<String>) body.eachText();
         return out;
     }
 

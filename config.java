@@ -1,18 +1,19 @@
 package com.mycompany.stockgo;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class config {
-    checksyn check;
-    String downloads_dir;
-    DateTimeFormatter uni_date;
+    protected checksyn check;
+    protected String downloads_dir;
+    protected DateTimeFormatter uni_date;
     protected ArrayList<String> label, label_url, label_title, label_folder, label_tag, label_status;
 
     public config() throws Exception {
-
         check = new checksyn();
         downloads_dir = check.getDownloads_dir();
         uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -54,8 +55,8 @@ public class config {
             }
         }
         var is_DC = tag_tmp[1].contains("yyyy");
-        var st_ed_tmp = (st_ed.matches("\\d+~\\d+") ? st_ed.split("~") :
-                new String[]{label_status.get(session), LocalDate.now().format(uni_date)});
+        var st_ed_tmp = (st_ed.matches("\\d+~\\d+") ?
+                st_ed.split("~") : new String[]{label_status.get(session), LocalDate.now().format(uni_date)});
 
         for (var date_tmp = LocalDate.parse(st_ed_tmp[0], uni_date);
              date_tmp.isBefore(LocalDate.parse(st_ed_tmp[1], uni_date)); ) {
@@ -85,19 +86,15 @@ public class config {
                 break;
             }
         }
-        var select_num_tmp = select_num_in.isEmpty() ? check.getNum(tag_tmp[1])
-                : (ArrayList<String>) Arrays.asList(select_num_in.split(","));
+        var select_num_tmp = select_num_in.isEmpty() ?
+                check.getNum(tag_tmp[1]) : (ArrayList<String>) Arrays.asList(select_num_in.split(","));
         out.addAll(select_num_tmp);
-        return out;
-    }
-
-    public ArrayList<String> get_config_label() {
-        var out = label;
         return out;
     }
 
     public ArrayList<String> getConfig() {
         var out = new ArrayList<String>();
+        out.add("序號");
         out.addAll(label);
         out.add("\n");
         for (var count = 0; count < label_url.size(); count++) {

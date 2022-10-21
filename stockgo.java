@@ -1,6 +1,8 @@
 package com.mycompany.stockgo;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class stockgo {
@@ -74,25 +76,25 @@ public class stockgo {
                     session = tmp;
                 }
                 case "-E" -> {
-                    if (data.isEmpty()) {
+                    if (session == null) {
                         System.out.println("please select data(-D) first");
                         break;
                     }
                     session.export(cmd.replace("-E ", ""), true);
                 }
                 case "-BT" -> {
-                    if (data.isEmpty()) {
+                    if (session == null) {
                         System.out.println("please select data(-D) first");
                         break;
                     }
                     var count = 0;
-                    for (var tmp : session.mark_exp_val()){
-                        System.out.println(count+".");
+                    for (var tmp : session.mark_exp_val()) {
+                        System.out.println(count + ".");
                         System.out.println(tmp);
                     }
                 }
                 case "-detail" -> {
-                    if (data.isEmpty()) {
+                    if (session == null) {
                         System.out.println("please select data(-D) first");
                         break;
                     }
@@ -120,7 +122,8 @@ public class stockgo {
 
     public static void select_layout() throws Exception {
         System.out.println("Select \"select\" function:");
-        System.out.println("                           -D(select data) -DE(select&export data) -BT(back test data)");
+        System.out.println("                           -D(select data) -E(export data) -BT(back test data)");
+        System.out.println("                           -detail(quick check on data)");
     }
 
 }

@@ -1,8 +1,11 @@
 package com.mycompany.stockgo;
 
-import java.io.*;
-import java.util.*;
-import java.time.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.ArrayList;
 
 public class manager extends config {
 
@@ -14,7 +17,8 @@ public class manager extends config {
         label_title.add(in.get(1));
         label_folder.add(in.get(2));
         label_tag.add(in.get(3));
-        label_status.add(in.get(4).isBlank()?LocalDate.now().minusYears(10).format(uni_date):in.get(4));
+        label_status.add(in.get(4).isBlank()?
+                LocalDate.now().minusYears(10).format(uni_date):in.get(4));
 
         download(in.get(0));
         label_status.set(label_url.lastIndexOf(in.get(0)), LocalDate.now().format(uni_date));
@@ -67,7 +71,7 @@ public class manager extends config {
                             path_tmp = path_tmp.concat("_" + time);
                         crawl.setPath(path_tmp + ".txt");
                         crawl.start();
-                        Thread.sleep((long) (Math.random() * 7500));
+                        Thread.sleep((long) (Math.random() * 7000));
                     } catch (Exception e) {
                         System.out.println("time iterator stopped");
                     }
