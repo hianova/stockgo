@@ -6,8 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class expectval {
-    private ArrayList<String> data;
-    private ArrayList<Integer> mark;
+    private final ArrayList<String> data;
+    private final ArrayList<Integer> mark;
     private int plus_odd, minus_odd, plus_points, minus_points;
 
     public expectval(ArrayList<String> in, ArrayList<Integer> mark_in) {

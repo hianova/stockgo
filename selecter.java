@@ -85,26 +85,28 @@ public class selecter extends config {
     public void export(String in, boolean label_in) throws Exception {
         var out_stream = new OutputStreamWriter(new FileOutputStream(in));
         new File(in).createNewFile();
-        var pointer = 0;
 
-        for (var count = 0; count < queue.size(); count++) {
-            var count_tmp = count;
-            if (label_in) {
-                request[count].forEach((tmp) -> {
+        if (label_in) {
+            for (var req : request) {
+                req.forEach((tmp) -> {
                     try {
-                        var is_last = request[count_tmp].indexOf(tmp) == (request[count_tmp].size() - 1) ? "\n" : ",";
+                        var is_last = Arrays.asList(request).indexOf(req) == request.length-1 &
+                                req.indexOf(tmp) == req.size()-1 ? "\n" : ",";
                         out_stream.write("\"" + tmp + "\"" + is_last);
                     } catch (IOException e) {
-                        System.out.println("label can't output");
+                        throw new RuntimeException(e);
                     }
                 });
             }
-            session[count].forEach((tmp) -> {
+        }
+        for (var ses : session) {
+            ses.forEach((tmp) -> {
                 try {
-                    var is_last = session[count_tmp].indexOf(tmp) % request[count_tmp].size() == 0 ? "\n" : ",";
-                    out_stream.write("\"" + tmp + "\"\n" + is_last);
+                    var is_last = Arrays.asList(session).indexOf(ses) == request.length-1 &
+                            ses.indexOf(tmp) % request[request.length-1].size()-1 ==0? "\n" : ",";
+                    out_stream.write("\"" + tmp + "\"" + is_last);
                 } catch (IOException e) {
-                    System.out.println("session can't output");
+                    throw new RuntimeException(e);
                 }
             });
         }
@@ -123,6 +125,7 @@ public class selecter extends config {
         var engine = new ScriptEngineManager().getEngineByName("javascript");
 
         engine.put("in", session);
+        engine.put("in_req", request);
         engine.eval(script);
         mark_data = (ArrayList[]) engine.get("out_data");
         mark_time = (ArrayList[]) engine.get("out_time");
