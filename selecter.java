@@ -26,13 +26,12 @@ public class selecter extends config {
     public ArrayList<String> select(boolean date_in) {
         var out = new ArrayList<String>();
         add_time = date_in;
-
         queue.forEach((que) -> {
             var thread = new Thread(() -> {
                 var que_tmp = new ArrayList<>(Arrays.asList(que.split("-")));
-                var url = new ArrayList<String>(List.of(""));
-                var date = new ArrayList<String>(List.of(""));
-                var numbers = new ArrayList<String>(List.of(""));
+                var url = new ArrayList<>(List.of(""));
+                var date = new ArrayList<>(List.of(""));
+                var numbers = new ArrayList<>(List.of(""));
                 var request_tmp = new ArrayList<String>();
 
                 url.set(0, que_tmp.get(0).contains("http") ?
@@ -40,13 +39,14 @@ public class selecter extends config {
                 que_tmp.forEach((tmp) -> {
                     if (tmp.trim().matches("date \\d+~\\d+"))
                         date.set(0, tmp.trim().split(" ")[1]);
-                    if (tmp.trim().matches("numbers \\w+,*\\w*"))
+                    if (tmp.trim().matches("(numbers) \\S*"))
                         numbers.set(0, tmp.trim().split(" ")[1]);
                     if (tmp.trim().matches("(request )\\S*"))
                         request_tmp.addAll(Arrays.asList(tmp.trim().split(" ")[1].split("\\.")));
                 });
+                var add_time_tmp = url.get(0).contains("@date")?add_time:false;
                 request_tmp.forEach((tmp) -> {
-                    if (add_time & request_tmp.indexOf(tmp) == 0)
+                    if (add_time_tmp & request_tmp.indexOf(tmp) == 0)
                         request[queue.indexOf(que)].add("日期");
                     request[queue.indexOf(que)].add(tmp);
                 });
@@ -64,7 +64,7 @@ public class selecter extends config {
                                     var data_tmp = new data(path + ".txt", request_tmp).getData();
 //                                    System.out.println(data_tmp);
                                     data_tmp.forEach((tmp) -> {
-                                        if (add_time & data_tmp.indexOf(tmp) % request_tmp.size() == 0)
+                                        if (add_time_tmp & data_tmp.indexOf(tmp) % request_tmp.size() == 0)
                                             session[queue.indexOf(que)].add(time);
                                         session[queue.indexOf(que)].add(tmp);
                                     });
@@ -83,32 +83,33 @@ public class selecter extends config {
     }
 
     public void export(String in, boolean label_in) throws Exception {
-        var out_stream = new OutputStreamWriter(new FileOutputStream(in));
-        new File(in).createNewFile();
+        var path = in.contains("-E") ? downloads_dir + "export.csv" : in;
+        var out_stream = new OutputStreamWriter(new FileOutputStream(path));
+        new File(path).createNewFile();
 
         if (label_in) {
-            for (var req : request) {
-                req.forEach((tmp) -> {
+            for (var count_req = 0; count_req < request.length; count_req++) {
+                for (var count = 0; count < request[count_req].size(); count++) {
                     try {
-                        var is_last = Arrays.asList(request).indexOf(req) == request.length-1 &
-                                req.indexOf(tmp) == req.size()-1 ? "\n" : ",";
-                        out_stream.write("\"" + tmp + "\"" + is_last);
+                        var is_last = count_req == request.length - 1 &&
+                                (count + 1) % request[count_req].size() == 0 ? "\n" : ",";
+                        out_stream.write("\"" + request[count_req].get(count) + "\"" + is_last);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                });
+                }
             }
         }
-        for (var ses : session) {
-            ses.forEach((tmp) -> {
+        for (var count_ses = 0; count_ses < session.length; count_ses++) {
+            for (var count = 0; count < session[count_ses].size(); count++) {
                 try {
-                    var is_last = Arrays.asList(session).indexOf(ses) == request.length-1 &
-                            ses.indexOf(tmp) % request[request.length-1].size()-1 ==0? "\n" : ",";
-                    out_stream.write("\"" + tmp + "\"" + is_last);
+                    var is_last = count_ses == session.length - 1 &&
+                            (count + 1) % request[count_ses].size() == 0 ? "\n" : ",";
+                    out_stream.write("\"" + session[count_ses].get(count) + "\"" + is_last);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            });
+            }
         }
         out_stream.close();
         System.out.println("file exported");
@@ -145,7 +146,7 @@ public class selecter extends config {
     public String getRequest() {
         var out = "";
         var count = 0;
-        for (var tmp : request) {
+        for (ArrayList<? extends Object> tmp : request) {
             out = out.concat(count + "." + tmp + " ");
             count++;
         }

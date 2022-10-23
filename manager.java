@@ -37,19 +37,19 @@ public class manager extends config {
     }
 
     public void update() {
-        label_status.forEach((tmp) -> {
-            if (Period.between(LocalDate.parse(tmp, uni_date),
+        for(var count=0;count<label_status.size();count++){
+            if (Period.between(LocalDate.parse(label_status.get(count), uni_date),
                     LocalDate.now()).getDays() > 1) {
                 try {
                     System.out.println("updating...");
-                    download(label_url.get(label_status.indexOf(tmp)));
-                    label_status.set(label_status.indexOf(tmp), LocalDate.now().format(uni_date));
+                    download(label_url.get(count));
+                    label_status.set(count, LocalDate.now().format(uni_date));
                     sync_config();
                 } catch (Exception e) {
                     System.out.println("update has suspend");
                 }
             }
-        });
+        }
         System.out.println("files are updated");
     }
 

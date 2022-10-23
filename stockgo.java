@@ -30,6 +30,9 @@ public class stockgo {
                     var tmp = command.replace("-S ", "");
                     selecter(tmp);
                 }
+                case "-syntax" -> {
+                    syntax_layout();
+                }
                 default -> System.out.println("command not found");
             }
             home_layout();
@@ -53,6 +56,9 @@ public class stockgo {
                     manage_layout();
                 }
                 case "-R" -> manager.reset_config();
+                case "-syntax" -> {
+                    syntax_layout();
+                }
                 default -> System.out.println("command not found");
             }
             in_done = true;
@@ -103,6 +109,9 @@ public class stockgo {
                     System.out.println("data:");
                     System.out.println(data.subList(0, 10) + " ...");
                 }
+                case "-syntax" -> {
+                    syntax_layout();
+                }
                 default -> System.out.println("command not found");
             }
             in_done = true;
@@ -111,19 +120,33 @@ public class stockgo {
 
     public static void home_layout() {
         System.out.println("Select function:");
-        System.out.println("                -M(manage config.txt) -S(select data)");
+        System.out.println("                -M(manage config.txt) -S(select data) -syntax(how to use)");
     }
 
     public static void manage_layout() throws Exception {
         System.out.println("Select \"manage\" function:");
-        System.out.println("                           -A(add list) -U(update list) -D(del list) -R(reset list)");
+        System.out.println("                           -A(add list) -U(update list) -D(del list)\n");
+        System.out.println("                           -R(reset list) -syntax(how to use)");
         System.out.println(new config().getConfig());
     }
 
     public static void select_layout() throws Exception {
         System.out.println("Select \"select\" function:");
         System.out.println("                           -D(select data) -E(export data) -BT(back test data)");
-        System.out.println("                           -detail(quick check on data)");
+        System.out.println("                           -detail(quick check on data) -syntax(how to use)");
+    }
+
+    public static void syntax_layout() {
+        System.out.println("\n-M(manage config.txt) page command:");
+        System.out.println("-A(add list): type in -A [URL,custom title,custom folder_name,tags,date]");
+        System.out.println("-U(update list): update to today");
+        System.out.println("-D(del list): type in -D [number of line on list]");
+        System.out.println("-R(reset list): reset to clean config");
+        System.out.println("\n-S(select data) page command:");
+        System.out.println("-D(select data): type in -D [URL/title -request req.req... option:(-date 8digit~8digit)(-numbers num.num...)],[]...");
+        System.out.println("-E(export data): type in -E [path](default:downloads/exports.csv)");
+        System.out.println("-BT(back test data): type in -BT [strategy]");
+        System.out.println("-detail(quick check on data): brief detail of data");
     }
 
 }
