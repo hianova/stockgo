@@ -87,7 +87,7 @@ public class config {
             }
         }
         var select_num_tmp = select_num_in.isEmpty() ?
-                check.getNum(tag_tmp[1]) : (ArrayList<String>) Arrays.asList(select_num_in.split("."));
+                check.getNum(tag_tmp[1]) : (ArrayList<String>) Arrays.asList(select_num_in.split("\\."));
         out.addAll(select_num_tmp);
         return out;
     }

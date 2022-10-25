@@ -1,74 +1,73 @@
 package com.mycompany.stockgo;
 
-import javax.script.ScriptEngineManager;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class expectval {
-    private final ArrayList<String> data;
+    private final DateTimeFormatter uni_date;
+    private final ArrayList<String> data, time;
     private final ArrayList<Integer> mark;
-    private int plus_odd, minus_odd, plus_points, minus_points;
+    private double plus_odd, minus_odd, plus_points, minus_points;
 
     public expectval(ArrayList<String> in, ArrayList<Integer> mark_in) {
-        data = new ArrayList<String>() {{
-            addAll(in);
-        }};
-        mark = new ArrayList<Integer>() {{
-            addAll(mark_in);
-        }};
+        uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
+        data = new ArrayList<>();
+        time = new ArrayList<>();
+        mark = new ArrayList<>(mark_in);
+
+        for (var count = 0; count < in.size(); count++) {
+            time.add(in.get(count));
+            data.add(in.get(count++));
+        }
     }
 
     public String compare(String in) {
         var out = "";
-        var in_tmp = in.split(":");
-        var script = new ScriptEngineManager().getEngineByName("JavaScript");
         plus_odd = plus_points = minus_odd = minus_points = 0;
 
         mark.forEach((mark_tmp) -> {
-            var time_tmp = LocalDate.parse(data.get(mark_tmp), DateTimeFormatter.ofPattern("yyyyMMdd"));
-            var data_tmp = data.get(mark_tmp + 1);
-            var end = 0;
+            var time_tmp = LocalDate.parse(time.get(mark_tmp), uni_date);
+            var target = 0;
             try {
-                var target_data = script.eval(in_tmp[0].replace("@mark", data_tmp));
-                switch (in_tmp[1]) {
+                switch (in) {
                     case "D" -> {
-                        LocalDate tmp = null;
-                        for (var count_tmp = 0; tmp.isBefore(time_tmp.plusDays(1)); count_tmp += 2) {
-                            tmp = LocalDate.parse(data.get(end), DateTimeFormatter.ofPattern("yyyyMMdd"));
-                            end = count_tmp;
+                        var tmp = time_tmp.plusDays(1);
+                        for (var count = 1; !time.contains(tmp.toString()); count++) {
+                            tmp = time_tmp.plusDays(count);
                         }
+                        target = time.indexOf(tmp.toString());
                     }
                     case "W" -> {
-                        LocalDate tmp = null;
-                        for (var count_tmp = 0; tmp.isBefore(time_tmp.plusWeeks(1)); count_tmp += 2) {
-                            tmp = LocalDate.parse(data.get(end), DateTimeFormatter.ofPattern("yyyyMMdd"));
-                            end = count_tmp;
+                        var tmp = time_tmp.plusWeeks(1);
+                        for (var count = 1; !time.contains(tmp.toString()); count++) {
+                            tmp = time_tmp.plusDays(count);
                         }
+                        target = time.indexOf(tmp.toString());
                     }
                     case "M" -> {
-                        LocalDate tmp = null;
-                        for (var count_tmp = 0; tmp.isBefore(time_tmp.plusMonths(1)); count_tmp += 2) {
-                            tmp = LocalDate.parse(data.get(end), DateTimeFormatter.ofPattern("yyyyMMdd"));
-                            end = count_tmp;
+                        var tmp = time_tmp.plusMonths(1);
+                        for (var count = 1; !time.contains(tmp.toString()); count++) {
+                            tmp = time_tmp.plusDays(count);
                         }
+                        target = time.indexOf(tmp.toString());
                     }
                     case "HY" -> {
-                        LocalDate tmp = null;
-                        for (var count_tmp = 0; tmp.isBefore(time_tmp.plusMonths(6)); count_tmp += 2) {
-                            tmp = LocalDate.parse(data.get(end), DateTimeFormatter.ofPattern("yyyyMMdd"));
-                            end = count_tmp;
+                        var tmp = time_tmp.plusMonths(6);
+                        for (var count = 1; !time.contains(tmp.toString()); count++) {
+                            tmp = time_tmp.plusDays(count);
                         }
+                        target = time.indexOf(tmp.toString());
                     }
                     case "Y" -> {
-                        LocalDate tmp = null;
-                        for (var count_tmp = 0; tmp.isBefore(time_tmp.plusYears(1)); count_tmp += 2) {
-                            tmp = LocalDate.parse(data.get(end), DateTimeFormatter.ofPattern("yyyyMMdd"));
-                            end = count_tmp;
+                        var tmp = time_tmp.plusYears(1);
+                        for (var count = 1; !time.contains(tmp.toString()); count++) {
+                            tmp = time_tmp.plusDays(count);
                         }
+                        target = time.indexOf(tmp.toString());
                     }
                 }
-                var tmp = Integer.parseInt(data.get(end)) - Integer.parseInt(target_data.toString());
+                var tmp = Integer.parseInt(data.get(target)) - Integer.parseInt(data.get(mark_tmp));
                 if (tmp < 0) {
                     minus_points += tmp;
                     minus_odd += 1;

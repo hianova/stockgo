@@ -30,9 +30,7 @@ public class stockgo {
                     var tmp = command.replace("-S ", "");
                     selecter(tmp);
                 }
-                case "-syntax" -> {
-                    syntax_layout();
-                }
+                case "-syntax" -> syntax_layout();
                 default -> System.out.println("command not found");
             }
             home_layout();
@@ -48,7 +46,7 @@ public class stockgo {
             var match = in_done ?
                     Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w+").matcher(in);
             switch (match.find() ? match.group(0) : "") {
-                case "-A" -> manager.add(new ArrayList<String>(Arrays.asList(cmd
+                case "-A" -> manager.add(new ArrayList<>(Arrays.asList(cmd
                         .replace("-A ", "").split(","))));
                 case "-U" -> manager.update();
                 case "-D" -> {
@@ -56,9 +54,7 @@ public class stockgo {
                     manage_layout();
                 }
                 case "-R" -> manager.reset_config();
-                case "-syntax" -> {
-                    syntax_layout();
-                }
+                case "-syntax" -> syntax_layout();
                 default -> System.out.println("command not found");
             }
             in_done = true;
@@ -76,7 +72,7 @@ public class stockgo {
                     Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w+").matcher(in);
             switch (match.find() ? match.group(0) : "") {
                 case "-D" -> {
-                    var tmp = new selecter(new ArrayList<String>(Arrays.asList(cmd
+                    var tmp = new selecter(new ArrayList<>(Arrays.asList(cmd
                             .replace("-D ", "").split(","))));
                     data = tmp.select(true);
                     session = tmp;
@@ -93,11 +89,8 @@ public class stockgo {
                         System.out.println("please select data(-D) first");
                         break;
                     }
-                    var count = 0;
-                    for (var tmp : session.mark_exp_val()) {
-                        System.out.println(count + ".");
-                        System.out.println(tmp);
-                    }
+                    session.setMark(cmd.replace("-BT ", ""));
+                    System.out.println(session.mark_exp_val());
                 }
                 case "-detail" -> {
                     if (session == null) {
@@ -109,9 +102,7 @@ public class stockgo {
                     System.out.println("data:");
                     System.out.println(data.subList(0, 10) + " ...");
                 }
-                case "-syntax" -> {
-                    syntax_layout();
-                }
+                case "-syntax" -> syntax_layout();
                 default -> System.out.println("command not found");
             }
             in_done = true;
@@ -130,7 +121,7 @@ public class stockgo {
         System.out.println(new config().getConfig());
     }
 
-    public static void select_layout() throws Exception {
+    public static void select_layout() {
         System.out.println("Select \"select\" function:");
         System.out.println("                           -D(select data) -E(export data) -BT(back test data)");
         System.out.println("                           -detail(quick check on data) -syntax(how to use)");

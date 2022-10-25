@@ -5,13 +5,14 @@ import java.io.*;
 import java.util.*;
 
 public class selecter extends config {
-    private final ArrayList<String> queue;
-    private final ArrayList[] request, session;
-    private ArrayList[] mark_data, mark_time;
+    private final ArrayList<String> queue, title;
+    private final ArrayList<String>[] request, session;
+    private ArrayList<Integer>[] mark;
     private boolean add_time;
 
     public selecter(ArrayList<String> in) throws Exception {
         queue = new ArrayList<>(in);
+        title = new ArrayList<>(in.size());
         request = new ArrayList[in.size()];
         session = new ArrayList[in.size()];
         add_time = false;
@@ -36,15 +37,16 @@ public class selecter extends config {
 
                 url.set(0, que_tmp.get(0).contains("http") ?
                         que_tmp.get(0).trim() : search_title(que_tmp.get(0).trim()).get(0));
+                title.set(queue.indexOf(que), label_title.get(label_url.lastIndexOf(url.get(0))));
                 que_tmp.forEach((tmp) -> {
                     if (tmp.trim().matches("date \\d+~\\d+"))
                         date.set(0, tmp.trim().split(" ")[1]);
                     if (tmp.trim().matches("(numbers) \\S*"))
                         numbers.set(0, tmp.trim().split(" ")[1]);
-                    if (tmp.trim().matches("(request )\\S*"))
+                    if (tmp.trim().matches("(request) \\S*"))
                         request_tmp.addAll(Arrays.asList(tmp.trim().split(" ")[1].split("\\.")));
                 });
-                var add_time_tmp = url.get(0).contains("@date")?add_time:false;
+                var add_time_tmp = url.get(0).contains("@date") && add_time;
                 request_tmp.forEach((tmp) -> {
                     if (add_time_tmp & request_tmp.indexOf(tmp) == 0)
                         request[queue.indexOf(que)].add("日期");
@@ -128,17 +130,24 @@ public class selecter extends config {
         engine.put("in", session);
         engine.put("in_req", request);
         engine.eval(script);
-        mark_data = (ArrayList[]) engine.get("out_data");
-        mark_time = (ArrayList[]) engine.get("out_time");
+        mark = (ArrayList<Integer>[]) engine.get("out");
     }
 
-    public String[] mark_exp_val() {
-        var out = new String[mark_data.length];
-        for (var count = 0; count < mark_data.length; count++) {
-            var tmp = new expectval(mark_data[count], mark_time[count]);
-            out[count] = " day: " + tmp.compare("D") + " week: " + tmp.compare("W") +
-                    " month: " + tmp.compare("M") + " half year: " + tmp.compare("HY") +
-                    " year: " + tmp.compare("Y");
+    public String mark_exp_val() {
+        var out = "";
+
+        for (var count_ses = 0; count_ses < session.length; count_ses++) {
+            for (var count_req = 0; count_req < request[count_ses].size(); count_req++) {
+                var tmp = new ArrayList<String>();
+                for (var count=0;count<session[count_ses].size()/(request[count_ses].size()+1);count++){
+                    tmp.add(session[count_ses].get(count));
+                    tmp.add(session[count_ses].get(count+count_req));
+                }
+                var exp = new expectval(tmp, mark[count_ses]);
+                out = "\n"+title.get(count_ses)+" day: " + exp.compare("D") + " week: " + exp.compare("W") +
+                        " month: " + exp.compare("M") + " half year: " + exp.compare("HY") +
+                        " year: " + exp.compare("Y")+"\n";
+            }
         }
         return out;
     }
@@ -146,7 +155,7 @@ public class selecter extends config {
     public String getRequest() {
         var out = "";
         var count = 0;
-        for (ArrayList<? extends Object> tmp : request) {
+        for (ArrayList<String> tmp : request) {
             out = out.concat(count + "." + tmp + " ");
             count++;
         }
