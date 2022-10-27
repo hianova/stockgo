@@ -53,7 +53,10 @@ public class stockgo {
                     manager.delete(Integer.parseInt(cmd.replace("-D ", "")));
                     manage_layout();
                 }
-                case "-R" -> manager.reset_config();
+                case "-R" -> {
+                    comfirm_layout();
+                    if(input.nextLine().matches("-Y")) manager.reset_config();
+                }
                 case "-syntax" -> syntax_layout();
                 default -> System.out.println("command not found");
             }
@@ -138,6 +141,11 @@ public class stockgo {
         System.out.println("-E(export data): type in -E [path](default:downloads/exports.csv)");
         System.out.println("-BT(back test data): type in -BT [strategy]");
         System.out.println("-detail(quick check on data): brief detail of data");
+    }
+
+    public static void comfirm_layout() {
+        System.out.println("Are you sure?");
+        System.out.println("             -Y(yes) -N(no)");
     }
 
 }

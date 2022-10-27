@@ -1,22 +1,21 @@
 package com.mycompany.stockgo;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
+import java.util.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class config {
     protected checksyn check;
-    protected String downloads_dir;
+    protected String downloads_dir,strategy_dir;
     protected DateTimeFormatter uni_date;
     protected ArrayList<String> label, label_url, label_title, label_folder, label_tag, label_status;
 
     public config() throws Exception {
         check = new checksyn();
         downloads_dir = check.getDownloads_dir();
-        uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
+        strategy_dir= check.getStrategy_dir();
+        uni_date = check.getUni_date();
         label = new ArrayList<>();
         label_url = new ArrayList<>();
         label_title = new ArrayList<>();

@@ -5,13 +5,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class expectval {
+    private final checksyn check;
     private final DateTimeFormatter uni_date;
     private final ArrayList<String> data, time;
     private final ArrayList<Integer> mark;
     private double plus_odd, minus_odd, plus_points, minus_points;
 
-    public expectval(ArrayList<String> in, ArrayList<Integer> mark_in) {
-        uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
+    public expectval(ArrayList<String> in, ArrayList<Integer> mark_in) throws Exception {
+        check = new checksyn();
+        uni_date = check.getUni_date();
         data = new ArrayList<>();
         time = new ArrayList<>();
         mark = new ArrayList<>(mark_in);
@@ -67,7 +69,7 @@ public class expectval {
                         target = time.indexOf(tmp.toString());
                     }
                 }
-                var tmp = Integer.parseInt(data.get(target)) - Integer.parseInt(data.get(mark_tmp));
+                var tmp = Integer.parseInt(data.get(target + 1)) - Integer.parseInt(data.get(mark_tmp + 1));
                 if (tmp < 0) {
                     minus_points += tmp;
                     minus_odd += 1;

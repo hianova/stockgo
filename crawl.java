@@ -1,10 +1,7 @@
 package com.mycompany.stockgo;
 
+import java.io.*;
 import javax.net.ssl.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.security.cert.X509Certificate;
 

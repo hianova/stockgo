@@ -1,24 +1,22 @@
 package com.mycompany.stockgo;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 public class checksyn {
     private final Random random;
     private final Hashtable<String, String> tag;
+    private final DateTimeFormatter uni_date;
     private final String downloads_dir, strategy_dir;
-    private final ArrayList<String> num_stock;
-    private final ArrayList<String> num_ETF;
+    private final ArrayList<String> num_stock,num_ETF;
 
     public checksyn() throws Exception {
         random = new Random();
         tag = new Hashtable<>();
+        uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
         downloads_dir = System.getProperty("user.dir") + System.getProperty("file.separator") +
                 "downloads" + System.getProperty("file.separator");
         strategy_dir = System.getProperty("user.dir") + System.getProperty("file.separator") +
@@ -114,4 +112,8 @@ public class checksyn {
         return out;
     }
 
+    public DateTimeFormatter getUni_date(){
+        var out = uni_date;
+        return out;
+    }
 }

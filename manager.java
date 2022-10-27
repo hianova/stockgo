@@ -1,10 +1,7 @@
 package com.mycompany.stockgo;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.time.LocalDate;
-import java.time.Period;
+import java.io.*;
+import java.time.*;
 import java.util.ArrayList;
 
 public class manager extends config {
@@ -17,8 +14,8 @@ public class manager extends config {
         label_title.add(in.get(1));
         label_folder.add(in.get(2));
         label_tag.add(in.get(3));
-        label_status.add(in.get(4).isBlank()?
-                LocalDate.now().minusYears(10).format(uni_date):in.get(4));
+        label_status.add(in.get(4).isBlank() ?
+                LocalDate.now().minusYears(10).format(uni_date) : in.get(4));
 
         download(in.get(0));
         label_status.set(label_url.lastIndexOf(in.get(0)), LocalDate.now().format(uni_date));
@@ -32,12 +29,12 @@ public class manager extends config {
         label_folder.remove(in);
         label_tag.remove(in);
         label_status.remove(in);
-        System.out.println(in+"line deleted");
         sync_config();
+        System.out.println(in + "line deleted");
     }
 
     public void update() {
-        for(var count=0;count<label_status.size();count++){
+        for (var count = 0; count < label_status.size(); count++) {
             if (Period.between(LocalDate.parse(label_status.get(count), uni_date),
                     LocalDate.now()).getDays() > 1) {
                 try {
@@ -54,9 +51,8 @@ public class manager extends config {
     }
 
     public void download(String in) throws Exception {
-        var path = downloads_dir + label_folder.get(label_url.lastIndexOf(in)) +
-                System.getProperty("file.separator") + check.UrlToName(in);
-        new File(downloads_dir + label_folder.get(label_url.lastIndexOf(in))).mkdir();
+        var path = downloads_dir + label_folder.get(label_url.lastIndexOf(in));
+        new File(path).mkdir();
 
         batch_num(in, "").forEach((num) -> {
             try {
@@ -64,7 +60,7 @@ public class manager extends config {
                     try {
                         var crawl = new crawl(in.replaceAll("@date", time)
                                 .replaceAll("@num", num));
-                        var path_tmp = path;
+                        var path_tmp = path + System.getProperty("file.separator") + check.UrlToName(in);;
                         if (in.contains("@num"))
                             path_tmp = path_tmp.concat("_" + num);
                         if (in.contains("@date"))
@@ -85,33 +81,30 @@ public class manager extends config {
     public void sync_config() throws Exception {
         var output = new BufferedWriter(new FileWriter(downloads_dir +
                 "config.txt", false));
-        var last_ele = label.get(label.size() - 1);
 
         label.forEach((tmp) -> {
             try {
-                output.write("\"" + tmp + "\"" + (tmp.contains(last_ele) ? "\n" : ","));
+                output.write("\"" + tmp + "\"" +
+                        (tmp.contains(label.get(label.size() - 1)) ? "\n" : ","));
             } catch (Exception e) {
                 System.out.println("label can't output");
             }
         });
-        for (var count = 0; count < label_url.size(); count++) {
-            output.write("\"" + label_url.get(count) + "\"," +
-                    "\"" + label_title.get(count) + "\"," +
-                    "\"" + label_folder.get(count) + "\"," +
-                    "\"" + label_tag.get(count) + "\"," +
+        for (var count = 0; count < label_url.size(); count++)
+            output.write("\"" + label_url.get(count) + "\"," + "\"" + label_title.get(count) + "\"," +
+                    "\"" + label_folder.get(count) + "\"," + "\"" + label_tag.get(count) + "\"," +
                     "\"" + label_status.get(count) + "\"\n");
-        }
         output.close();
     }
 
     public void reset_config() throws Exception {
         var list = new String[]{"網址", "標題", "資料夾", "標籤", "狀態"};
-        var last_ele = list[list.length - 1];
         var output = new BufferedWriter(new FileWriter(
                 downloads_dir + "config.txt", false));
 
         for (var tmp : list)
-            output.write("\"" + tmp + "\"" + (tmp.contains(last_ele) ? "\n" : ","));
+            output.write("\"" + tmp + "\"" +
+                    (tmp.contains(list[list.length - 1]) ? "\n" : ","));
         output.close();
         System.out.println("config.txt is reset");
     }
