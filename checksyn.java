@@ -1,9 +1,13 @@
 package com.mycompany.stockgo;
 
-import java.io.*;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.net.URL;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 public class checksyn {
@@ -63,13 +67,11 @@ public class checksyn {
         if (num_stock.isEmpty()) {
             new data(downloads_dir + "上市證券代號" + System.getProperty("file.separator") +
                     "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
-                if (pattern.matcher(tmp).find())
-                    num_stock.add(tmp.split("　")[0]);
+                if (pattern.matcher(tmp).find()) num_stock.add(tmp.split("　")[0]);
             });
             new data(downloads_dir + "上櫃證券代號" + System.getProperty("file.separator") +
                     "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
-                if (pattern.matcher(tmp).find())
-                    num_stock.add(tmp.split("　")[0]);
+                if (pattern.matcher(tmp).find()) num_stock.add(tmp.split("　")[0]);
             });
         }
         out = num_stock;
@@ -83,8 +85,7 @@ public class checksyn {
         if (num_ETF.isEmpty())
             new data(downloads_dir + "基金＿國際證券代號" + System.getProperty("file.separator") +
                     "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
-                if (pattern.matcher(tmp).find())
-                    num_ETF.add(tmp.split("　")[0]);
+                if (pattern.matcher(tmp).find()) num_ETF.add(tmp.split("　")[0]);
             });
         out = num_ETF;
         return out;

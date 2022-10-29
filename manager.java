@@ -1,7 +1,10 @@
 package com.mycompany.stockgo;
 
-import java.io.*;
-import java.time.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 
 public class manager extends config {
@@ -60,11 +63,9 @@ public class manager extends config {
                     try {
                         var crawl = new crawl(in.replaceAll("@date", time)
                                 .replaceAll("@num", num));
-                        var path_tmp = path + System.getProperty("file.separator") + check.UrlToName(in);;
-                        if (in.contains("@num"))
-                            path_tmp = path_tmp.concat("_" + num);
-                        if (in.contains("@date"))
-                            path_tmp = path_tmp.concat("_" + time);
+                        var path_tmp = path + System.getProperty("file.separator") + check.UrlToName(in);
+                        if (in.contains("@num")) path_tmp = path_tmp.concat("_" + num);
+                        if (in.contains("@date")) path_tmp = path_tmp.concat("_" + time);
                         crawl.setPath(path_tmp + ".txt");
                         crawl.start();
                         Thread.sleep((long) (Math.random() * 7000));

@@ -2,7 +2,9 @@ package com.mycompany.stockgo;
 
 import javax.script.ScriptEngineManager;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class selecter extends config {
     private final ArrayList<String> queue, title;
@@ -49,8 +51,7 @@ public class selecter extends config {
                                 .split(" ")[1].split("\\.")));
                 });
                 for (var count = 0; count < request_tmp.size(); count++) {
-                    if (add_time_tmp & count == 0)
-                        request[queue.indexOf(que)].add("日期");
+                    if (add_time_tmp & count == 0) request[queue.indexOf(que)].add("日期");
                     request[queue.indexOf(que)].add(request_tmp.get(count));
                 }
                 try {
@@ -61,10 +62,8 @@ public class selecter extends config {
                                             .get(label_url.lastIndexOf(url.get(0))) +
                                             System.getProperty("file.separator") +
                                             check.UrlToName(url.get(0));
-                                    if (url.get(0).contains("@num"))
-                                        path = path.concat("_" + num);
-                                    if (url.get(0).contains("@date"))
-                                        path = path.concat("_" + time);
+                                    if (url.get(0).contains("@num")) path = path.concat("_" + num);
+                                    if (url.get(0).contains("@date")) path = path.concat("_" + time);
 //                                    System.out.println(path + ".txt");
                                     var data_tmp = new data(path + ".txt", request_tmp).getData();
 //                                    System.out.println(data_tmp);
