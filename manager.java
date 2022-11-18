@@ -85,8 +85,7 @@ public class manager extends config {
 
         label.forEach((tmp) -> {
             try {
-                output.write("\"" + tmp + "\"" +
-                        (tmp.contains(label.get(label.size() - 1)) ? "\n" : ","));
+                output.write("\"" + tmp + "\"" + (tmp.contains(label.get(label.size() - 1)) ? "\n" : ","));
             } catch (Exception e) {
                 System.out.println("label can't output");
             }

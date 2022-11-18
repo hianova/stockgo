@@ -12,12 +12,10 @@ public class stockgo {
     static ArrayList<String> data = new ArrayList<>();
 
     public static void main(String[] in) throws Exception {
-        if(in[0].contains("-M")){
-            var tmp = in[0].replace("-M ", "");
-            manager(tmp);
+        if (in.length > 0 && in[0] == "-A") {
+            new manager().add(new ArrayList<>(Arrays.asList(in[1].split(","))));
             return;
         }
-
         new manager().update();
         home_layout();
         var match = Pattern.compile("-\\w+");
