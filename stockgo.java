@@ -2,37 +2,49 @@ package com.mycompany.stockgo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class stockgo {
-
-    static Scanner input = new Scanner(System.in);
-    static String command = "";
-    static ArrayList<String> data = new ArrayList<>();
+    static manager man;
+    static selecter sel;
+    static ArrayList<String> data ;
 
     public static void main(String[] in) throws Exception {
-        if (in.length > 0 && in[0] == "-A") {
+        Scanner input = new Scanner(System.in);
+        String command;
+
+        if (in.length > 0 && Objects.equals(in[0], "-A")) {
             new manager().add(new ArrayList<>(Arrays.asList(in[1].split(","))));
             return;
         }
         new manager().update();
         home_layout();
-        var match = Pattern.compile("-\\w+");
         while (!(command = input.nextLine()).matches("exit")) {
-            var match_tmp = match.matcher(command);
-            if (!match_tmp.find()) {
+            var match = Pattern.compile("-\\w+").matcher(command);
+            if (!match.find()) {
                 System.out.println("invalid command");
                 continue;
             }
-            switch (match_tmp.group(0)) {
+            switch (match.group(0)) {
                 case "-M" -> {
-                    var tmp = command.replace("-M ", "");
-                    manager(tmp);
+                    manage_layout();
+                    var first_done = false;
+                    do {
+                        var tmp = first_done ? command : command.replace("-M ", "");
+                        manager(tmp);
+                        first_done = true;
+                    } while (!(command = input.nextLine()).matches("(home|exit)"));
                 }
                 case "-S" -> {
-                    var tmp = command.replace("-S ", "");
-                    selecter(tmp);
+                    select_layout();
+                    var first_done = false;
+                    do {
+                        var tmp = first_done ? command : command.replace("-S ", "");
+                        selecter(tmp);
+                        first_done = true;
+                    } while (!(command = input.nextLine()).matches("(home|exit)"));
                 }
                 case "-syntax" -> syntax_layout();
                 default -> System.out.println("command not found");
@@ -42,78 +54,64 @@ public class stockgo {
     }
 
     public static void manager(String in) throws Exception {
-        manage_layout();
-        var manager = new manager();
-        var in_done = false;
-        do {
-            var cmd = in_done ? command : in;
-            var match = in_done ?
-                    Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w+").matcher(in);
-            switch (match.find() ? match.group(0) : "") {
-                case "-A" -> manager.add(new ArrayList<>(Arrays.asList(cmd
-                        .replace("-A ", "").split(","))));
-                case "-U" -> manager.update();
-                case "-D" -> {
-                    manager.delete(Integer.parseInt(cmd.replace("-D ", "")));
-                    manage_layout();
-                }
-                case "-R" -> {
-                    comfirm_layout();
-                    if(input.nextLine().matches("-Y")) manager.reset_config();
-                }
-                case "-syntax" -> syntax_layout();
-                default -> System.out.println("command not found");
-            }
-            in_done = true;
-        } while (!(command = input.nextLine()).matches("(home|exit)"));
+        var match = Pattern.compile("-\\w+").matcher(in);
+        man = new manager();
 
+        switch (match.find() ? match.group(0) : "") {
+            case "-A" -> man.add(new ArrayList<>(Arrays.asList(in
+                    .replace("-A ", "").split(","))));
+            case "-U" -> man.update();
+            case "-D" -> {
+                man.delete(Integer.parseInt(in.replace("-D ", "")));
+                manage_layout();
+            }
+            case "-R" -> {
+                comfirm_layout();
+                if (new Scanner(System.in).nextLine().matches("-Y")) man.reset_config();
+            }
+            case "-syntax" -> syntax_layout();
+            default -> System.out.println("command not found");
+        }
     }
 
     public static void selecter(String in) throws Exception {
-        select_layout();
-        var in_done = false;
-        selecter session = null;
-        do {
-            var cmd = in_done ? command : in;
-            var match = in_done ?
-                    Pattern.compile("-\\w+").matcher(command) : Pattern.compile("-\\w+").matcher(in);
-            switch (match.find() ? match.group(0) : "") {
-                case "-D" -> {
-                    var tmp = new selecter(new ArrayList<>(Arrays.asList(cmd
-                            .replace("-D ", "").split(","))));
-                    data = tmp.select(true);
-                    session = tmp;
-                }
-                case "-E" -> {
-                    if (session == null) {
-                        System.out.println("please select data(-D) first");
-                        break;
-                    }
-                    session.export(cmd.replace("-E ", ""), true);
-                }
-                case "-BT" -> {
-                    if (session == null) {
-                        System.out.println("please select data(-D) first");
-                        break;
-                    }
-                    session.setMark(cmd.replace("-BT ", ""));
-                    System.out.println(session.mark_exp_val());
-                }
-                case "-detail" -> {
-                    if (session == null) {
-                        System.out.println("please select data(-D) first");
-                        break;
-                    }
-                    System.out.println("request:");
-                    System.out.println(session.getRequest());
-                    System.out.println("data:");
-                    System.out.println(data.subList(0, 10) + " ...");
-                }
-                case "-syntax" -> syntax_layout();
-                default -> System.out.println("command not found");
+        var match = Pattern.compile("-\\w+").matcher(in);
+
+        switch (match.find() ? match.group(0) : "") {
+            case "-D" -> {
+                var tmp = new selecter(new ArrayList<>(Arrays.asList(in
+                        .replace("-D ", "").split(","))));
+                data = tmp.select(true);
+                sel = tmp;
             }
-            in_done = true;
-        } while (!(command = input.nextLine()).matches("(home|exit)"));
+            case "-E" -> {
+                if (sel == null) {
+                    System.out.println("please select data(-D) first");
+                    break;
+                }
+                sel.export(in.replace("-E ", ""), true);
+            }
+            case "-BT" -> {
+                if (sel == null) {
+                    System.out.println("please select data(-D) first");
+                    break;
+                }
+                sel.setMark(in.replace("-BT ", ""));
+                System.out.println(sel.mark_exp_val());
+            }
+            case "-detail" -> {
+                if (sel == null) {
+                    System.out.println("please select data(-D) first");
+                    break;
+                }
+                System.out.println("request:");
+                System.out.println(sel.getRequest());
+                System.out.println("data:");
+                System.out.println(data.subList(0, 10) + " ...");
+            }
+            case "-syntax" -> syntax_layout();
+            default -> System.out.println("command not found");
+        }
     }
 
     public static void home_layout() {
@@ -150,6 +148,11 @@ public class stockgo {
     public static void comfirm_layout() {
         System.out.println("Are you sure?");
         System.out.println("             -Y(yes) -N(no)");
+    }
+
+    public ArrayList<String> getData(){
+        var out =data;
+        return out;
     }
 
 }
