@@ -27,6 +27,7 @@ public class checksyn {
                 "strategy" + System.getProperty("file.separator");
         num_stock = new ArrayList<>();
         num_ETF = new ArrayList<>();
+
         var parse_rule = new BufferedReader(new FileReader(System.getProperty("user.dir") +
                 System.getProperty("file.separator") + "parse_rule.txt"));
         for (var parse_tmp = ""; (parse_tmp = parse_rule.readLine()) != null; ) {
@@ -106,6 +107,7 @@ public class checksyn {
         var file = new BufferedReader(new FileReader(System.getProperty("user.dir") +
                 System.getProperty("file.separator") + "useragent.txt"));
         var UA = new ArrayList<String>();
+
         for (var tmp = ""; (tmp = file.readLine()) != null; ) {
             UA.add(tmp);
         }

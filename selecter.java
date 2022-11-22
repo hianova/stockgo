@@ -128,7 +128,6 @@ public class selecter extends config {
             script = script.concat(tmp);
         }
         var engine = new ScriptEngineManager().getEngineByName("javascript");
-
         engine.put("in", session);
         engine.put("in_req", request);
         engine.eval(script);

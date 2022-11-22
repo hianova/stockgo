@@ -24,14 +24,11 @@ public class config {
         label_folder = new ArrayList<>();
         label_tag = new ArrayList<>();
         label_status = new ArrayList<>();
-        var input = new BufferedReader(new FileReader(downloads_dir + "config.txt"));
 
+        var input = new BufferedReader(new FileReader(downloads_dir + "config.txt"));
+        label.addAll(Arrays.asList(input.readLine()));
         for (String input_tmp; (input_tmp = input.readLine()) != null; ) {
             var tmp = input_tmp.replace("\"", "").split(",");
-            if (label.isEmpty()) {
-                label.addAll(Arrays.asList(tmp));
-                continue;
-            }
             label_url.add(tmp[0]);
             label_title.add(tmp[1]);
             label_folder.add(tmp[2]);
