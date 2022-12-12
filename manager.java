@@ -41,7 +41,6 @@ public class manager extends config {
             if (Period.between(LocalDate.parse(label_status.get(count), uni_date),
                     LocalDate.now()).getDays() > 1) {
                 try {
-                    System.out.println("updating...");
                     download(label_url.get(count));
                     label_status.set(count, LocalDate.now().format(uni_date));
                     sync_config();

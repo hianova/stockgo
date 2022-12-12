@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class config {
     protected checksyn check;
@@ -26,7 +27,7 @@ public class config {
         label_status = new ArrayList<>();
 
         var input = new BufferedReader(new FileReader(downloads_dir + "config.txt"));
-        label.addAll(Arrays.asList(input.readLine()));
+        label.addAll(List.of(input.readLine().replace("\"", "").split(",")));
         for (String input_tmp; (input_tmp = input.readLine()) != null; ) {
             var tmp = input_tmp.replace("\"", "").split(",");
             label_url.add(tmp[0]);

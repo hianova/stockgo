@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 public class stockgo {
     static manager man;
     static selecter sel;
-    static ArrayList<String> data ;
+    static ArrayList<String> data;
 
     public static void main(String[] in) throws Exception {
         Scanner input = new Scanner(System.in);
@@ -46,7 +46,6 @@ public class stockgo {
                         first_done = true;
                     } while (!(command = input.nextLine()).matches("(home|exit)"));
                 }
-                case "-syntax" -> syntax_layout();
                 default -> System.out.println("command not found");
             }
             home_layout();
@@ -69,7 +68,7 @@ public class stockgo {
                 comfirm_layout();
                 if (new Scanner(System.in).nextLine().matches("-Y")) man.reset_config();
             }
-            case "-syntax" -> syntax_layout();
+            case "-syntax" -> syntax_layout(1);
             default -> System.out.println("command not found");
         }
     }
@@ -109,14 +108,14 @@ public class stockgo {
                 System.out.println("data:");
                 System.out.println(data.subList(0, 10) + " ...");
             }
-            case "-syntax" -> syntax_layout();
+            case "-syntax" -> syntax_layout(2);
             default -> System.out.println("command not found");
         }
     }
 
     public static void home_layout() {
         System.out.println("Select function:");
-        System.out.println("                -M(manage config.txt) -S(select data) -syntax(how to use)");
+        System.out.println("                -M(manage config.txt) -S(select data)");
     }
 
     public static void manage_layout() throws Exception {
@@ -132,17 +131,23 @@ public class stockgo {
         System.out.println("                           -detail(quick check on data) -syntax(how to use)");
     }
 
-    public static void syntax_layout() {
-        System.out.println("\n-M(manage config.txt) page command:");
-        System.out.println("-A(add list): type in -A [URL,custom title,custom folder_name,tags,date]");
-        System.out.println("-U(update list): update to today");
-        System.out.println("-D(del list): type in -D [number of line on list]");
-        System.out.println("-R(reset list): reset to clean config");
-        System.out.println("\n-S(select data) page command:");
-        System.out.println("-D(select data): type in -D [URL/title -request req.req... option:(-date 8digit~8digit)(-numbers num.num...)],[]...");
-        System.out.println("-E(export data): type in -E [path](default:downloads/exports.csv)");
-        System.out.println("-BT(back test data): type in -BT [strategy]");
-        System.out.println("-detail(quick check on data): brief detail of data");
+    public static void syntax_layout(int in) {
+        switch (in) {
+            case 1 -> {
+                System.out.println("\n-M(manage config.txt) page command:");
+                System.out.println("    -A(add list): type in -A [URL,custom title,custom folder_name,tags,date]");
+                System.out.println("    -U(update list): update to today");
+                System.out.println("    -D(del list): type in -D [number of line on list]");
+                System.out.println("    -R(reset list): reset to clean config");
+            }
+            case 2 -> {
+                System.out.println("\n-S(select data) page command:");
+                System.out.println("    -D(select data): type in -D [URL/title -request req.req... option:(-date 8digit~8digit)(-numbers num.num...)],[]...");
+                System.out.println("    -E(export data): type in -E [path](default:downloads/exports.csv)");
+                System.out.println("    -BT(back test data): type in -BT [strategy]");
+                System.out.println("    -detail(quick check on data): brief detail of data");
+            }
+        }
     }
 
     public static void comfirm_layout() {
@@ -150,8 +155,8 @@ public class stockgo {
         System.out.println("             -Y(yes) -N(no)");
     }
 
-    public ArrayList<String> getData(){
-        var out =data;
+    public ArrayList<String> getData() {
+        var out = data;
         return out;
     }
 
