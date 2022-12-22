@@ -9,103 +9,120 @@ import java.util.ArrayList;
 
 public class manager extends config {
 
-    public manager() throws Exception {
+  public manager() throws Exception {
+  }
+
+  public void add(ArrayList<String> in) throws Exception {
+    var url = in.get(0).replace(" ", "");
+
+    if (label_url.contains(url)) {
+      System.out.println("URL exist line: "+label_url.lastIndexOf(url));
+      return;
     }
+    label_url.add(url);
+    label_title.add(in.get(1));
+    label_folder.add(in.get(2).isBlank() ?
+        check.UrlToName(url.split("@Post:")[0]) : in.get(2));
+    label_tag.add(in.get(3));
+    label_status.add(in.get(4).isBlank() ?
+        LocalDate.now().minusYears(10).format(uni_date) : in.get(4));
+    download(url);
+    label_status.set(label_url.lastIndexOf(url), LocalDate.now().format(uni_date));
+    sync_config();
+    System.out.println(in.get(1) + " added");
+  }
 
-    public void add(ArrayList<String> in) throws Exception {
-        label_url.add(in.get(0));
-        label_title.add(in.get(1));
-        label_folder.add(in.get(2));
-        label_tag.add(in.get(3));
-        label_status.add(in.get(4).isBlank() ?
-                LocalDate.now().minusYears(10).format(uni_date) : in.get(4));
+  public void delete(int in) throws Exception {
+    label_url.remove(in);
+    label_title.remove(in);
+    label_folder.remove(in);
+    label_tag.remove(in);
+    label_status.remove(in);
+    sync_config();
+    System.out.println(in + "line deleted");
+  }
 
-        download(in.get(0));
-        label_status.set(label_url.lastIndexOf(in.get(0)), LocalDate.now().format(uni_date));
-        sync_config();
-        System.out.println(in.get(1) + " added");
-    }
-
-    public void delete(int in) throws Exception {
-        label_url.remove(in);
-        label_title.remove(in);
-        label_folder.remove(in);
-        label_tag.remove(in);
-        label_status.remove(in);
-        sync_config();
-        System.out.println(in + "line deleted");
-    }
-
-    public void update() {
-        for (var count = 0; count < label_status.size(); count++) {
-            if (Period.between(LocalDate.parse(label_status.get(count), uni_date),
-                    LocalDate.now()).getDays() > 1) {
-                try {
-                    download(label_url.get(count));
-                    label_status.set(count, LocalDate.now().format(uni_date));
-                    sync_config();
-                } catch (Exception e) {
-                    System.out.println("update has suspend");
-                }
-            }
+  public void update() {
+    for (var count = 0; count < label_status.size(); count++) {
+      if (Period.between(LocalDate.parse(label_status.get(count), uni_date),
+          LocalDate.now()).getDays() > 1) {
+        try {
+          download(label_url.get(count));
+          label_status.set(count, LocalDate.now().format(uni_date));
+          sync_config();
+        } catch (Exception e) {
+          System.out.println("update has suspend " + e);
         }
-        System.out.println("files are updated");
+      }
     }
+    System.out.println("files are updated");
+  }
 
-    public void download(String in) throws Exception {
-        var path = downloads_dir + label_folder.get(label_url.lastIndexOf(in));
-        new File(path).mkdir();
+  public void download(String in) throws Exception {
+    var dir = downloads_dir + label_folder.get(label_url.lastIndexOf(in)) +
+        System.getProperty("file.separator");
 
-        batch_num(in, "").forEach((num) -> {
-            try {
-                batch_time(in, "").forEach((time) -> {
-                    try {
-                        var crawl = new crawl(in.replaceAll("@date", time)
-                                .replaceAll("@num", num));
-                        var path_tmp = path + System.getProperty("file.separator") + check.UrlToName(in);
-                        if (in.contains("@num")) path_tmp = path_tmp.concat("_" + num);
-                        if (in.contains("@date")) path_tmp = path_tmp.concat("_" + time);
-                        crawl.setPath(path_tmp + ".txt");
-                        crawl.start();
-                        Thread.sleep((long) (Math.random() * 7000));
-                    } catch (Exception e) {
-                        System.out.println("time iterator stopped");
-                    }
-                });
-            } catch (Exception e) {
-                System.out.println("number iterator stopped");
+    new File(dir).mkdir();
+    batch_num(in, "").forEach((num) -> {
+      try {
+        batch_time(in, "").forEach((time) -> {
+          try {
+            var url = in.replaceAll("@date", toOri_date_form(time,in))
+                .replaceAll("@num", num).split("@Post:");
+            var crawl = new crawl(url[0]);
+            var path_tmp = dir + check.UrlToName(url[0]);
+            if (in.contains("@num")) {
+              path_tmp = path_tmp.concat("_" + num);
             }
-        });
-    }
-
-    public void sync_config() throws Exception {
-        var output = new BufferedWriter(new FileWriter(downloads_dir +
-                "config.txt", false));
-
-        label.forEach((tmp) -> {
-            try {
-                output.write("\"" + tmp + "\"" + (tmp.contains(label.get(label.size() - 1)) ? "\n" : ","));
-            } catch (Exception e) {
-                System.out.println("label can't output");
+            if (in.contains("@date")) {
+              path_tmp = path_tmp.concat("_" + time);
             }
+            if (in.contains("@Post")) {
+              crawl.set_Post(url[1]);
+            }
+            crawl.setPath(path_tmp + ".txt");
+            crawl.start();
+            Thread.sleep((long) (Math.random() * 6000));
+          } catch (Exception e) {
+            System.out.println("time iterator stopped " + e);
+          }
         });
-        for (var count = 0; count < label_url.size(); count++)
-            output.write("\"" + label_url.get(count) + "\"," + "\"" + label_title.get(count) + "\"," +
-                    "\"" + label_folder.get(count) + "\"," + "\"" + label_tag.get(count) + "\"," +
-                    "\"" + label_status.get(count) + "\"\n");
-        output.close();
-    }
+      } catch (Exception e) {
+        System.out.println("number iterator stopped " + e);
+      }
+    });
+  }
 
-    public void reset_config() throws Exception {
-        var list = new String[]{"網址", "標題", "資料夾", "標籤", "狀態"};
-        var output = new BufferedWriter(new FileWriter(
-                downloads_dir + "config.txt", false));
+  public void sync_config() throws Exception {
+    var output = new BufferedWriter(new FileWriter(downloads_dir +
+        "config.txt", false));
 
-        for (var tmp : list)
-            output.write("\"" + tmp + "\"" +
-                    (tmp.contains(list[list.length - 1]) ? "\n" : ","));
-        output.close();
-        System.out.println("config.txt is reset");
+    label.forEach((tmp) -> {
+      try {
+        output.write("\"" + tmp + "\"" + (tmp.contains(label.get(label.size() - 1)) ? "\n" : ","));
+      } catch (Exception e) {
+        System.out.println("label can't output " + e);
+      }
+    });
+    for (var count = 0; count < label_url.size(); count++) {
+      output.write("\"" + label_url.get(count) + "\"," + "\"" + label_title.get(count) + "\"," +
+          "\"" + label_folder.get(count) + "\"," + "\"" + label_tag.get(count) + "\"," +
+          "\"" + label_status.get(count) + "\"\n");
     }
+    output.close();
+  }
+
+  public void reset_config() throws Exception {
+    var list = new String[]{"網址", "標題", "資料夾", "標籤", "狀態"};
+    var output = new BufferedWriter(new FileWriter(
+        downloads_dir + "config.txt", false));
+
+    for (var tmp : list) {
+      output.write("\"" + tmp + "\"" +
+          (tmp.contains(list[list.length - 1]) ? "\n" : ","));
+    }
+    output.close();
+    System.out.println("config.txt has reset");
+  }
 
 }

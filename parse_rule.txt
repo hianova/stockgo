@@ -8,5 +8,5 @@
 "mops_twse_com_tw_body":"td>table>tbody>tr:gt(1)"
 "isin_twse_com_tw":"body>table.h4"
 "isin_twse_com_tw_encode":"big5"
-"isin_twse_com_tw_head":"body>table.h4>tbody>tr:eq(0)>td"
-"isin_twse_com_tw_body":"body>table.h4>tbody>tr:gt(0)"
+"isin_twse_com_tw_head":"table.h4>tbody>tr:eq(0)>td"
+"isin_twse_com_tw_body":"table.h4>tbody>tr:gt(0)"
