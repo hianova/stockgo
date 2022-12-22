@@ -7,12 +7,11 @@ The checksyn is nothing more then clean up code,which hide unnessesary detail ge
 
 HOW to intall:  
 Project only provide .java file ,who ever need it feel free to dowload for develope,for genaral 
-user I'll put download link below .
+user the download link is below.
 
 HOW to use:  
 Due to ability there's no user friendly interface for user ,while there may be a plan build one,
-but for now there's only command line ,which may be useful for developer cause who doesn't
-want a shell for ease of use.
+but for now there's only command line .
 
 Credit:  
 I did it ALL. 10/21/2022
