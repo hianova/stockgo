@@ -34,17 +34,15 @@ public class selecter extends config {
 
     queue.forEach((que) -> new Thread(() -> {
       var que_tmp = new ArrayList<>(Arrays.asList(que.split("-")));
-      var url = new ArrayList<>(List.of(""));
-      var date = new ArrayList<>(List.of(""));
+      var url = new ArrayList<String>(List.of(""));
+      var date = new ArrayList<String>(List.of(""));
       var numbers = new ArrayList<>(List.of(""));
       var request_tmp = new ArrayList<String>();
-      var add_time_tmp = date_in;
+
       url.set(0, que_tmp.get(0).contains("http") ?
           que_tmp.get(0).trim() : search_title(que_tmp.get(0).trim()).get(0));
       title.add(queue.indexOf(que), label_title.get(label_url.lastIndexOf(url.get(0))));
-      if (!url.get(0).contains("@date")) {
-        add_time_tmp = false;
-      }
+      var add_time_tmp = url.get(0).contains("date")&&date_in;
       que_tmp.forEach((tmp) -> {
         if (tmp.trim().matches("date \\d+~\\d+")) {
           date.set(0, tmp.trim().split(" ")[1]);
