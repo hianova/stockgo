@@ -121,6 +121,9 @@ public class config {
   }
 
   public String toOri_date_form(String in, String url) {
+    if (in.contains("null")) {
+      return in;
+    }
     String out = "";
     var tag_tmp = label_tag.get(label_url.lastIndexOf(url)).split("@");
     var date = LocalDate.parse(in, uni_date);
