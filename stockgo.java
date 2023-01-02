@@ -58,8 +58,7 @@ public class stockgo {
     man = new manager();
 
     switch (match.find() ? match.group(0) : "") {
-      case "-A" -> man.add(new ArrayList<>(Arrays.asList(in
-          .replace("-A ", "").split(","))));
+      case "-A" -> man.add(new ArrayList<>(Arrays.asList(in.replace("-A ", "").split(","))));
       case "-U" -> man.update();
       case "-D" -> {
         man.delete(Integer.parseInt(in.replace("-D ", "")));
@@ -72,6 +71,14 @@ public class stockgo {
         }
       }
       case "-syntax" -> syntax_layout(1);
+      case "-In" -> {
+        new IPFS_layer().get_file(in.replace("-In ", ""));
+        System.out.println("File imported");
+      }
+      case "-Out" -> {
+        var tmp = new IPFS_layer().share_file(in.replace("-Out ", ""));
+        System.out.println(tmp);
+      }
       default -> System.out.println("command not found");
     }
   }
@@ -81,8 +88,7 @@ public class stockgo {
 
     switch (match.find() ? match.group(0) : "") {
       case "-D" -> {
-        var tmp = new selecter(new ArrayList<>(Arrays.asList(in
-            .replace("-D ", "").split(","))));
+        var tmp = new selecter(new ArrayList<>(Arrays.asList(in.replace("-D ", "").split(","))));
         data = tmp.select(true);
         sel = tmp;
       }
@@ -125,7 +131,8 @@ public class stockgo {
   public static void manage_layout() throws Exception {
     System.out.println("Select \"manage\" function:");
     System.out.println("                           -A(add list) -U(update list) -D(del list)\n");
-    System.out.println("                           -R(reset list) -syntax(how to use)");
+    System.out.println(
+        "                           -R(reset list) -syntax(how to use) -In(import list) -Out(export list)");
     System.out.println(new config().getConfig());
   }
 
@@ -150,7 +157,7 @@ public class stockgo {
       case 2 -> {
         System.out.println("\n-S(select data) page command:");
         System.out.println(
-            "    -D(select data): type in -D [URL/title -request req,req... option:(-date 8digit~8digit)(-numbers num.num...)],[]...");
+            "    -D(select data): type in -D [URL/title -request req.req... option:(-date 8digit~8digit)(-numbers num.num...)],[]...");
         System.out.println("    -E(export data): type in -E [path](default:downloads/exports.csv)");
         System.out.println("    -BT(back test data): type in -BT [strategy]");
         System.out.println("    -detail(quick check on data): brief detail of data");
@@ -161,11 +168,6 @@ public class stockgo {
   public static void comfirm_layout() {
     System.out.println("Are you sure?");
     System.out.println("             -Y(yes) -N(no)");
-  }
-
-  public ArrayList<String> getData() {
-    var out = data;
-    return out;
   }
 
 }

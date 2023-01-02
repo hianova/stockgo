@@ -1,7 +1,9 @@
 package com.mycompany.stockgo;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -55,8 +57,7 @@ public class config {
       }
     }
     var is_DC = tag_tmp[1].contains("yyyy");
-    var st_ed_tmp = (st_ed.matches("\\d+~\\d+") ?
-        st_ed.split("~")
+    var st_ed_tmp = (st_ed.matches("\\d+~\\d+") ? st_ed.split("~")
         : new String[]{label_status.get(session), LocalDate.now().format(uni_date)});
     for (var date_tmp = LocalDate.parse(st_ed_tmp[0], uni_date);
         date_tmp.isBefore(LocalDate.parse(st_ed_tmp[1], uni_date)); ) {
@@ -86,8 +87,8 @@ public class config {
         break;
       }
     }
-    var select_num_tmp = select_num_in.isEmpty() ?
-        check.getNum(tag_tmp[1]) : (ArrayList<String>) Arrays.asList(select_num_in.split("\\."));
+    var select_num_tmp = select_num_in.isEmpty() ? check.getNum(tag_tmp[1])
+        : (ArrayList<String>) Arrays.asList(select_num_in.split("\\."));
     out.addAll(select_num_tmp);
     return out;
   }
@@ -107,6 +108,26 @@ public class config {
       out.add("\n");
     }
     return out;
+  }
+
+
+  public void sync_config() throws Exception {
+    var output = new BufferedWriter(new FileWriter(downloads_dir + "config.txt", false));
+
+    label.forEach((tmp) -> {
+      try {
+        output.write("\"" + tmp + "\"" + (tmp.contains(label.get(label.size() - 1)) ? "\n" : ","));
+      } catch (Exception e) {
+        System.out.println("label can't output " + e);
+      }
+    });
+    for (var count = 0; count < label_url.size(); count++) {
+      output.write(
+          "\"" + label_url.get(count) + "\"," + "\"" + label_title.get(count) + "\"," + "\""
+              + label_folder.get(count) + "\"," + "\"" + label_tag.get(count) + "\"," + "\""
+              + label_status.get(count) + "\"\n");
+    }
+    output.close();
   }
 
   public ArrayList<String> search_title(String in) {

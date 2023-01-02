@@ -93,25 +93,6 @@ public class manager extends config {
     });
   }
 
-  public void sync_config() throws Exception {
-    var output = new BufferedWriter(new FileWriter(downloads_dir +
-        "config.txt", false));
-
-    label.forEach((tmp) -> {
-      try {
-        output.write("\"" + tmp + "\"" + (tmp.contains(label.get(label.size() - 1)) ? "\n" : ","));
-      } catch (Exception e) {
-        System.out.println("label can't output " + e);
-      }
-    });
-    for (var count = 0; count < label_url.size(); count++) {
-      output.write("\"" + label_url.get(count) + "\"," + "\"" + label_title.get(count) + "\"," +
-          "\"" + label_folder.get(count) + "\"," + "\"" + label_tag.get(count) + "\"," +
-          "\"" + label_status.get(count) + "\"\n");
-    }
-    output.close();
-  }
-
   public void reset_config() throws Exception {
     var list = new String[]{"網址", "標題", "資料夾", "標籤", "狀態"};
     var output = new BufferedWriter(new FileWriter(
