@@ -23,15 +23,14 @@ public class IPFS_layer extends config {
 
   public String share_file(String in) throws Exception {
     var out = "";
-    var session = label_title.lastIndexOf(in);
+    var session = Integer.parseInt(in);
     var json = new ObjectMapper().createObjectNode();
     json.put("config",
         label_url.get(session) + "," + label_title.get(session) + "," + label_folder.get(session)
             + "," + label_tag.get(session) + "," + label_status.get(session));
     var json_file = json.putObject("file");
-    Arrays.stream(new File(
-        check.getDownloads_dir() + label_folder.get(session) + System.getProperty(
-            "file.separator")).listFiles()).iterator().forEachRemaining((tmp) -> {
+    Arrays.stream(new File(downloads_dir + label_folder.get(session) + System.getProperty(
+        "file.separator")).listFiles()).iterator().forEachRemaining((tmp) -> {
       try {
         var cid = ipfs.add(new ByteArrayWrapper(new FileInputStream(tmp).readAllBytes()));
         json_file.put(tmp.getName().replace(".txt", ""), cid.get(0).toString().split("-")[0]);
@@ -47,6 +46,7 @@ public class IPFS_layer extends config {
     var json = (ObjectNode) new ObjectMapper().readTree(ipfs.dag.get(Cid.decode(in)));
     var config = json.get("config").textValue().split(",");
     var file = json.get("file").fields();
+
     label_url.add(config[0]);
     label_title.add(config[1]);
     label_folder.add(config[2]);
@@ -54,17 +54,16 @@ public class IPFS_layer extends config {
     label_status.add(config[4]);
     sync_config();
     file.forEachRemaining((tmp) -> new Thread(() -> {
-      new File(check.getDownloads_dir() + config[2] + System.getProperty("file.separator")).mkdir();
+      new File(downloads_dir + config[2] + System.getProperty("file.separator")).mkdir();
       var file_tmp = new File(
-          check.getDownloads_dir() + config[2] + System.getProperty("file.separator") + tmp.getKey()
-              + ".txt");
+          downloads_dir + config[2] + System.getProperty("file.separator") + tmp.getKey() + ".txt");
       try {
         file_tmp.createNewFile();
         var file_out = new OutputStreamWriter(new FileOutputStream(file_tmp));
-        file_out.write(Arrays.toString(ipfs.get(Cid.decode(tmp.getValue().textValue()))));
+        file_out.write(new String(ipfs.get(Cid.decode(tmp.getValue().textValue()))));
         file_out.close();
       } catch (IOException e) {
-        System.out.println("IPFS go wrong");
+        System.out.println("IPFS gone wrong");
       }
     }).start());
   }

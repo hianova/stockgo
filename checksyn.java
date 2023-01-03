@@ -1,13 +1,14 @@
 package com.mycompany.stockgo;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 import org.jsoup.select.Elements;
 
@@ -23,26 +24,26 @@ public class checksyn {
     random = new Random();
     tag = new Hashtable<>();
     uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
-    downloads_dir = System.getProperty("user.dir") + System.getProperty("file.separator") +
-        "downloads" + System.getProperty("file.separator");
-    strategy_dir = System.getProperty("user.dir") + System.getProperty("file.separator") +
-        "strategy" + System.getProperty("file.separator");
+    downloads_dir =
+        System.getProperty("user.dir") + System.getProperty("file.separator") + "downloads"
+            + System.getProperty("file.separator");
+    strategy_dir =
+        System.getProperty("user.dir") + System.getProperty("file.separator") + "strategy"
+            + System.getProperty("file.separator");
     num_stock = new ArrayList<>();
     num_ETF = new ArrayList<>();
 
-    var parse_rule = new BufferedReader(new FileReader(System.getProperty("user.dir") +
-        System.getProperty("file.separator") + "parse_rule.txt"));
-    for (var parse_tmp = ""; (parse_tmp = parse_rule.readLine()) != null; ) {
-      var tmp = parse_tmp.split("\":\"");
-      tag.put(tmp[0].replaceAll("\"", ""), tmp[1].replaceAll("\"", ""));
+    var parse_rule = new String(new FileInputStream(
+        System.getProperty("user.dir") + System.getProperty("file.separator")
+            + "parse_rule.txt").readAllBytes()).replace("\"", "").split("\n");
+    for (var tmp : parse_rule) {
+      tag.put(tmp.split(":")[0], tmp.split(":")[1]);
     }
   }
 
   public String UrlToName(String in) throws Exception {
     var out = "";
-    var list = new String[]{
-        "\\.\\w+", "_@num", "_@date", "@num", "@date"
-    };
+    var list = new String[]{"\\.\\w+", "_@num", "_@date", "@num", "@date"};
     var url = new URL(in).getPath();
     for (var list_tmp : list) {
       url = url.replaceAll(list_tmp, "");
@@ -72,15 +73,15 @@ public class checksyn {
     var pattern = Pattern.compile("^[0-9]{4}　");
 
     if (num_stock.isEmpty()) {
-      new data(downloads_dir + "上市證券代號" + System.getProperty("file.separator") +
-          "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData()
+      new data(downloads_dir + "上市證券代號" + System.getProperty("file.separator")
+          + "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData()
           .forEach((tmp) -> {
             if (pattern.matcher(tmp).find()) {
               num_stock.add(tmp.split("　")[0]);
             }
           });
-      new data(downloads_dir + "上櫃證券代號" + System.getProperty("file.separator") +
-          "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData()
+      new data(downloads_dir + "上櫃證券代號" + System.getProperty("file.separator")
+          + "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData()
           .forEach((tmp) -> {
             if (pattern.matcher(tmp).find()) {
               num_stock.add(tmp.split("　")[0]);
@@ -96,8 +97,8 @@ public class checksyn {
     var pattern = Pattern.compile("^T[0-9]+\\w");
 
     if (num_ETF.isEmpty()) {
-      new data(downloads_dir + "基金＿國際證券代號" + System.getProperty("file.separator") +
-          "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData()
+      new data(downloads_dir + "基金＿國際證券代號" + System.getProperty("file.separator")
+          + "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData()
           .forEach((tmp) -> {
             if (pattern.matcher(tmp).find()) {
               num_ETF.add(tmp.split("　")[0]);
@@ -120,13 +121,10 @@ public class checksyn {
 
   public String getUA() throws Exception {
     var out = "";
-    var file = new BufferedReader(new FileReader(System.getProperty("user.dir") +
-        System.getProperty("file.separator") + "useragent.txt"));
-    var UA = new ArrayList<String>();
+    var file_in = new FileInputStream(
+        System.getProperty("user.dir") + System.getProperty("file.separator") + "useragent.txt");
+    var UA = new ArrayList<>(Arrays.asList(new String(file_in.readAllBytes()).split("\n")));
 
-    for (var tmp = ""; (tmp = file.readLine()) != null; ) {
-      UA.add(tmp);
-    }
     out = UA.get(random.nextInt(UA.size()));
     return out;
   }

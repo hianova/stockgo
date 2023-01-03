@@ -1,9 +1,8 @@
 package com.mycompany.stockgo;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -32,17 +31,17 @@ public class selecter extends config {
   public ArrayList<String> select(boolean date_in) {
     var out = new ArrayList<String>();
 
-    queue.forEach((que) -> new Thread(() -> {
+    queue.forEach((que) -> {
       var que_tmp = new ArrayList<>(Arrays.asList(que.split("-")));
       var url = new ArrayList<String>(List.of(""));
       var date = new ArrayList<String>(List.of(""));
       var numbers = new ArrayList<>(List.of(""));
       var request_tmp = new ArrayList<String>();
 
-      url.set(0, que_tmp.get(0).contains("http") ?
-          que_tmp.get(0).trim() : search_title(que_tmp.get(0).trim()).get(0));
+      url.set(0, que_tmp.get(0).contains("http") ? que_tmp.get(0).trim()
+          : search_title(que_tmp.get(0).trim()).get(0));
       title.add(queue.indexOf(que), label_title.get(label_url.lastIndexOf(url.get(0))));
-      var add_time_tmp = url.get(0).contains("date")&&date_in;
+      var add_time_tmp = url.get(0).contains("date") && date_in;
       que_tmp.forEach((tmp) -> {
         if (tmp.trim().matches("date \\d+~\\d+")) {
           date.set(0, tmp.trim().split(" ")[1]);
@@ -51,18 +50,16 @@ public class selecter extends config {
           numbers.set(0, tmp.trim().split(" ")[1]);
         }
         if (tmp.trim().matches("(request) \\S*")) {
-          request_tmp.addAll(Arrays.asList(tmp.trim()
-              .split(" ")[1].split("\\.")));
+          request_tmp.addAll(Arrays.asList(tmp.trim().split(" ")[1].split("\\.")));
         }
       });
       try {
-        batch_num(url.get(0), numbers.get(0)).forEach((num) ->
-            batch_time(url.get(0), date.get(0)).forEach((time) -> {
+        batch_num(url.get(0), numbers.get(0)).forEach(
+            (num) -> batch_time(url.get(0), date.get(0)).forEach((time) -> {
               try {
-                var path = downloads_dir + label_folder
-                    .get(label_url.lastIndexOf(url.get(0))) +
-                    System.getProperty("file.separator") +
-                    check.UrlToName(url.get(0).split("@Post:")[0]);
+                var path = downloads_dir + label_folder.get(label_url.lastIndexOf(url.get(0)))
+                    + System.getProperty("file.separator") + check.UrlToName(
+                    url.get(0).split("@Post:")[0]);
                 if (url.get(0).contains("@num")) {
                   path = path.concat("_" + num);
                 }
@@ -98,7 +95,7 @@ public class selecter extends config {
         }
         request[queue.indexOf(que)].add(request_tmp.get(count));
       }
-    }).start());
+    });
     return out;
   }
 
@@ -111,8 +108,9 @@ public class selecter extends config {
       for (var count_req = 0; count_req < request.length; count_req++) {
         for (var count = 0; count < request[count_req].size(); count++) {
           try {
-            var is_last = count_req == request.length - 1 &&
-                (count + 1) % request[count_req].size() == 0 ? "\n" : ",";
+            var is_last =
+                count_req == request.length - 1 && (count + 1) % request[count_req].size() == 0
+                    ? "\n" : ",";
             out_stream.write("\"" + request[count_req].get(count) + "\"" + is_last);
           } catch (IOException e) {
             System.out.println("label export error " + e);
@@ -123,8 +121,9 @@ public class selecter extends config {
     for (var count_ses = 0; count_ses < session.length; count_ses++) {
       for (var count = 0; count < session[count_ses].size(); count++) {
         try {
-          var is_last = count_ses == session.length - 1 &&
-              (count + 1) % request[count_ses].size() == 0 ? "\n" : ",";
+          var is_last =
+              count_ses == session.length - 1 && (count + 1) % request[count_ses].size() == 0 ? "\n"
+                  : ",";
           out_stream.write("\"" + session[count_ses].get(count) + "\"" + is_last);
         } catch (IOException e) {
           System.out.println("data export error " + e);
@@ -136,16 +135,16 @@ public class selecter extends config {
   }
 
   public void setMark(String in) throws Exception {
-    var file = new File(check.getStrategy_dir() + in + ".js");
+    var file = new File(strategy_dir + in + ".js");
     if (!file.exists()) {
+      System.out.println("strategy not exist");
       return;
     }
     var script = "";
-    var file_in = new BufferedReader(new FileReader(file));
-    for (var tmp = ""; (tmp = file_in.readLine()) != null; ) {
-      script = script.concat(tmp);
-    }
+    var file_in = new FileInputStream(file);
     var engine = new ScriptEngineManager().getEngineByName("javascript");
+
+    script = new String(file_in.readAllBytes());
     engine.put("in", session);
     engine.put("in_req", request);
     engine.eval(script);
@@ -166,9 +165,8 @@ public class selecter extends config {
         var exp = new expectval(tmp, mark[count_ses]);
         out =
             "\n" + title.get(count_ses) + " day: " + exp.compare("D") + " week: " + exp.compare("W")
-                +
-                " month: " + exp.compare("M") + " half year: " + exp.compare("HY") +
-                " year: " + exp.compare("Y") + "\n";
+                + " month: " + exp.compare("M") + " half year: " + exp.compare("HY") + " year: "
+                + exp.compare("Y") + "\n";
       }
     }
     return out;

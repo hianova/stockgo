@@ -64,15 +64,10 @@ public class stockgo {
         man.delete(Integer.parseInt(in.replace("-D ", "")));
         manage_layout();
       }
-      case "-R" -> {
-        comfirm_layout();
-        if (new Scanner(System.in).nextLine().matches("-Y")) {
-          man.reset_config();
-        }
-      }
       case "-syntax" -> syntax_layout(1);
       case "-In" -> {
         new IPFS_layer().get_file(in.replace("-In ", ""));
+        man.update();
         System.out.println("File imported");
       }
       case "-Out" -> {
@@ -80,6 +75,49 @@ public class stockgo {
         System.out.println(tmp);
       }
       default -> System.out.println("command not found");
+    }
+  }
+
+  public static void home_layout() {
+    System.out.println("Select function:");
+    System.out.println("                -M(manage config.txt) -S(select data)");
+  }
+
+  public static void manage_layout() throws Exception {
+    System.out.println("Select \"manage\" function:");
+    System.out.println("                           -A(add list) -U(update list) -D(del list)\n");
+    System.out.println(
+        "                           -syntax(how to use) -In(import list) -Out(export list)");
+    System.out.println(new config().getConfig());
+  }
+
+  public static void select_layout() {
+    System.out.println("Select \"select\" function:");
+    System.out.println(
+        "                           -D(select data) -E(export data) -BT(back test data)");
+    System.out.println(
+        "                           -detail(quick check on data) -syntax(how to use)");
+  }
+
+  public static void syntax_layout(int in) {
+    switch (in) {
+      case 1 -> {
+        System.out.println("\n-M(manage config.txt) page command:");
+        System.out.println(
+            "    -A(add list): type in -A [URL,custom title,custom folder_name,tags,date]");
+        System.out.println("    -U(update list): update to today");
+        System.out.println("    -D(del list): type in -D [number of list]");
+        System.out.println("    -In(import list): type in -In [CID]");
+        System.out.println("    -Out(export list): type in -Out [number of list]");
+      }
+      case 2 -> {
+        System.out.println("\n-S(select data) page command:");
+        System.out.println(
+            "    -D(select data): type in -D [URL/title -request req.req... option:(-date 8digit~8digit)(-numbers num.num...)],[]...");
+        System.out.println("    -E(export data): type in -E [path](default:downloads/exports.csv)");
+        System.out.println("    -BT(back test data): type in -BT [strategy]");
+        System.out.println("    -detail(quick check on data): brief detail of data");
+      }
     }
   }
 
@@ -121,53 +159,6 @@ public class stockgo {
       case "-syntax" -> syntax_layout(2);
       default -> System.out.println("command not found");
     }
-  }
-
-  public static void home_layout() {
-    System.out.println("Select function:");
-    System.out.println("                -M(manage config.txt) -S(select data)");
-  }
-
-  public static void manage_layout() throws Exception {
-    System.out.println("Select \"manage\" function:");
-    System.out.println("                           -A(add list) -U(update list) -D(del list)\n");
-    System.out.println(
-        "                           -R(reset list) -syntax(how to use) -In(import list) -Out(export list)");
-    System.out.println(new config().getConfig());
-  }
-
-  public static void select_layout() {
-    System.out.println("Select \"select\" function:");
-    System.out.println(
-        "                           -D(select data) -E(export data) -BT(back test data)");
-    System.out.println(
-        "                           -detail(quick check on data) -syntax(how to use)");
-  }
-
-  public static void syntax_layout(int in) {
-    switch (in) {
-      case 1 -> {
-        System.out.println("\n-M(manage config.txt) page command:");
-        System.out.println(
-            "    -A(add list): type in -A [URL,custom title,custom folder_name,tags,date]");
-        System.out.println("    -U(update list): update to today");
-        System.out.println("    -D(del list): type in -D [number of line on list]");
-        System.out.println("    -R(reset list): reset to clean config");
-      }
-      case 2 -> {
-        System.out.println("\n-S(select data) page command:");
-        System.out.println(
-            "    -D(select data): type in -D [URL/title -request req.req... option:(-date 8digit~8digit)(-numbers num.num...)],[]...");
-        System.out.println("    -E(export data): type in -E [path](default:downloads/exports.csv)");
-        System.out.println("    -BT(back test data): type in -BT [strategy]");
-        System.out.println("    -detail(quick check on data): brief detail of data");
-      }
-    }
-  }
-
-  public static void comfirm_layout() {
-    System.out.println("Are you sure?");
-    System.out.println("             -Y(yes) -N(no)");
   }
 
 }

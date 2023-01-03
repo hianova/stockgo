@@ -1,9 +1,8 @@
 package com.mycompany.stockgo;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -28,23 +27,23 @@ public class config {
     label_folder = new ArrayList<>();
     label_tag = new ArrayList<>();
     label_status = new ArrayList<>();
-    var input = new BufferedReader(new FileReader(downloads_dir + "config.txt"));
+    var file_in = Arrays.stream(
+        new String(new FileInputStream(downloads_dir + "config.txt").readAllBytes())
+            .replace("\"", "").split("\n")).iterator();
 
-    label.addAll(List.of(input.readLine().replace("\"", "").split(",")));
-    for (String input_tmp; (input_tmp = input.readLine()) != null; ) {
-      var tmp = input_tmp.replace("\"", "").split(",");
-      label_url.add(tmp[0]);
-      label_title.add(tmp[1]);
-      label_folder.add(tmp[2]);
-      label_tag.add(tmp[3]);
-      label_status.add(tmp[4]);
+    label.addAll(List.of(file_in.next().split(",")));
+    for (var tmp = file_in.next(); file_in.hasNext(); tmp = file_in.next()) {
+      label_url.add(tmp.split(",")[0]);
+      label_title.add(tmp.split(",")[1]);
+      label_folder.add(tmp.split(",")[2]);
+      label_tag.add(tmp.split(",")[3]);
+      label_status.add(tmp.split(",")[4]);
     }
-    input.close();
   }
 
   public ArrayList<String> batch_time(String in, String st_ed) {
     if (!in.contains("@date")) {
-      return new ArrayList<>(Arrays.asList("null"));
+      return new ArrayList<>(List.of("null"));
     }
     var out = new ArrayList<String>();
     var session = label_url.lastIndexOf(in);
@@ -75,7 +74,7 @@ public class config {
 
   public ArrayList<String> batch_num(String in, String select_num_in) throws Exception {
     if (!in.contains("@num")) {
-      return new ArrayList<>(Arrays.asList("null"));
+      return new ArrayList<>(List.of("null"));
     }
     var out = new ArrayList<String>();
     var session = label_url.lastIndexOf(in);
@@ -112,7 +111,7 @@ public class config {
 
 
   public void sync_config() throws Exception {
-    var output = new BufferedWriter(new FileWriter(downloads_dir + "config.txt", false));
+    var output = new OutputStreamWriter(new FileOutputStream(downloads_dir + "config.txt"));
 
     label.forEach((tmp) -> {
       try {

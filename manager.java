@@ -1,8 +1,6 @@
 package com.mycompany.stockgo;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
@@ -16,7 +14,7 @@ public class manager extends config {
     var url = in.get(0).replace(" ", "");
 
     if (label_url.contains(url)) {
-      System.out.println("URL exist line: "+label_url.lastIndexOf(url));
+      System.out.println("URL exist line: " + label_url.lastIndexOf(url));
       return;
     }
     label_url.add(url);
@@ -67,7 +65,7 @@ public class manager extends config {
       try {
         batch_time(in, "").forEach((time) -> {
           try {
-            var url = in.replaceAll("@date", toOri_date_form(time,in))
+            var url = in.replaceAll("@date", toOri_date_form(time, in))
                 .replaceAll("@num", num).split("@Post:");
             var crawl = new crawl(url[0]);
             var path_tmp = dir + check.UrlToName(url[0]);
@@ -82,7 +80,7 @@ public class manager extends config {
             }
             crawl.setPath(path_tmp + ".txt");
             crawl.start();
-            Thread.sleep((long) (Math.random() * 6000));
+            Thread.sleep((long) (Math.random() * 5000));
           } catch (Exception e) {
             System.out.println("time iterator stopped " + e);
           }
@@ -92,18 +90,4 @@ public class manager extends config {
       }
     });
   }
-
-  public void reset_config() throws Exception {
-    var list = new String[]{"網址", "標題", "資料夾", "標籤", "狀態"};
-    var output = new BufferedWriter(new FileWriter(
-        downloads_dir + "config.txt", false));
-
-    for (var tmp : list) {
-      output.write("\"" + tmp + "\"" +
-          (tmp.contains(list[list.length - 1]) ? "\n" : ","));
-    }
-    output.close();
-    System.out.println("config.txt has reset");
-  }
-
 }
