@@ -24,14 +24,14 @@ public class crawl extends Thread {
 
     trans.setRequestProperty("Referer", in);
     trans.setRequestProperty("Host", url.getHost());
-    trans.setRequestProperty("Origin", url.getHost());
+    trans.setRequestProperty("Accept", "text/html,*/*");
     trans.setRequestProperty("Connection", "keep-alive");
     trans.setRequestProperty("User-Agent", check.getUA());
-    trans.setRequestProperty("Accept-Encoding", check.getTag(tag + "/encode"));
+    trans.setRequestProperty("Origin", "https://"+url.getHost());
+    trans.setRequestProperty("X-Requested-With","XMLHttpRequest");
     trans.setRequestProperty("Accept-Language", "zh-TW,zh-Hant;q=0.9");
-    trans.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-    trans.setRequestProperty("Accept",
-        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    trans.setRequestProperty("Content-Type",
+        "application/x-www-form-urlencoded; charset=" + check.getTag(tag + "/encode"));
   }
 
   public void set_Post(String in) throws Exception {
