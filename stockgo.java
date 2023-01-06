@@ -1,7 +1,7 @@
 package com.mycompany.stockgo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -17,7 +17,7 @@ public class stockgo {
     String command;
 
     if (in.length > 0 && Objects.equals(in[0], "-A")) {
-      new manager().add(new ArrayList<>(Arrays.asList(in[1].split(","))));
+      new manager().add(new ArrayList<>(List.of(in[1].split(","))));
       return;
     }
     new manager().update();
@@ -58,7 +58,7 @@ public class stockgo {
     man = new manager();
 
     switch (match.find() ? match.group(0) : "") {
-      case "-A" -> man.add(new ArrayList<>(Arrays.asList(in.replace("-A ", "").split(","))));
+      case "-A" -> man.add(new ArrayList<>(List.of(in.replace("-A ", "").split(","))));
       case "-U" -> man.update();
       case "-D" -> {
         man.delete(Integer.parseInt(in.replace("-D ", "")));
@@ -71,9 +71,49 @@ public class stockgo {
         System.out.println("File imported");
       }
       case "-Out" -> {
-        var tmp = new IPFS_layer().share_file(in.replace("-Out ", ""));
+        var tmp = new IPFS_layer().share_file(Integer.parseInt(in.replace("-Out ", "")));
         System.out.println(tmp);
       }
+      default -> System.out.println("command not found");
+    }
+  }
+
+  public static void selecter(String in) throws Exception {
+    var match = Pattern.compile("-\\w+").matcher(in);
+
+    switch (match.find() ? match.group(0) : "") {
+      case "-D" -> {
+        var tmp = new selecter(new ArrayList<>(List.of(in.replace("-D ", "").split(","))));
+        data = tmp.select(true);
+        sel = tmp;
+      }
+      case "-E" -> {
+        if (sel == null) {
+          System.out.println("please select data(-D) first");
+          break;
+        }
+        var in_tmp = in.replace("-E ", "");
+        sel.export(in_tmp, true);
+      }
+      case "-BT" -> {
+        if (sel == null) {
+          System.out.println("please select data(-D) first");
+          break;
+        }
+        sel.setMark(in.replace("-BT ", ""));
+        System.out.println(sel.mark_exp_val());
+      }
+      case "-detail" -> {
+        if (sel == null) {
+          System.out.println("please select data(-D) first");
+          break;
+        }
+        System.out.println("request:");
+        System.out.println(sel.getRequest());
+        System.out.println("data:");
+        System.out.println(data.subList(0, 10) + " ...");
+      }
+      case "-syntax" -> syntax_layout(2);
       default -> System.out.println("command not found");
     }
   }
@@ -121,44 +161,5 @@ public class stockgo {
     }
   }
 
-  public static void selecter(String in) throws Exception {
-    var match = Pattern.compile("-\\w+").matcher(in);
-
-    switch (match.find() ? match.group(0) : "") {
-      case "-D" -> {
-        var tmp = new selecter(new ArrayList<>(Arrays.asList(in.replace("-D ", "").split(","))));
-        data = tmp.select(true);
-        sel = tmp;
-      }
-      case "-E" -> {
-        if (sel == null) {
-          System.out.println("please select data(-D) first");
-          break;
-        }
-        var in_tmp = in.replace("-E ", "");
-        sel.export(in_tmp, true);
-      }
-      case "-BT" -> {
-        if (sel == null) {
-          System.out.println("please select data(-D) first");
-          break;
-        }
-        sel.setMark(in.replace("-BT ", ""));
-        System.out.println(sel.mark_exp_val());
-      }
-      case "-detail" -> {
-        if (sel == null) {
-          System.out.println("please select data(-D) first");
-          break;
-        }
-        System.out.println("request:");
-        System.out.println(sel.getRequest());
-        System.out.println("data:");
-        System.out.println(data.subList(0, 10) + " ...");
-      }
-      case "-syntax" -> syntax_layout(2);
-      default -> System.out.println("command not found");
-    }
-  }
 
 }

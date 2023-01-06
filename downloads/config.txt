@@ -1,4 +1,20 @@
-"網址","標題","資料夾","標籤","狀態"
-"https://isin.twse.com.tw/isin/C_public.jsp?strMode=2","上市證券代號","上市證券代號","","20220101"
-"https://isin.twse.com.tw/isin/C_public.jsp?strMode=4","上櫃證券代號","上櫃證券代號","","20220101"
-"https://isin.twse.com.tw/isin/C_public.jsp?strMode=7","基金＿國際證券代號","基金＿國際證券代號","","20220101"
+{
+   "上市證券代號":{
+      "URL":"https://isin.twse.com.tw/isin/C_public.jsp?strMode=2",
+      "folder":"上市證券代號",
+      "tag":"",
+      "status":"20220101"
+   },
+   "上櫃證券代號":{
+      "URL":"https://isin.twse.com.tw/isin/C_public.jsp?strMode=4",
+      "folder":"上櫃證券代號",
+      "tag":"",
+      "status":"20220101"
+   },
+   "基金＿國際證券代號":{
+      "URL":"https://isin.twse.com.tw/isin/C_public.jsp?strMode=7",
+      "folder":"基金＿國際證券代號",
+      "tag":"",
+      "status":"20220101"
+   }
+}

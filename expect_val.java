@@ -4,20 +4,18 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-public class expectval {
+public class expect_val {
 
-  private final checksyn check;
-  private final DateTimeFormatter uni_date;
   private final ArrayList<String> data, time;
   private final ArrayList<Integer> mark;
+  private final DateTimeFormatter uni_date;
   private double plus_odd, minus_odd, plus_points, minus_points;
 
-  public expectval(ArrayList<String> in, ArrayList<Integer> mark_in) throws Exception {
-    check = new checksyn();
-    uni_date = check.getUni_date();
+  public expect_val(ArrayList<String> in, ArrayList<Integer> mark_in) {
     data = new ArrayList<>();
     time = new ArrayList<>();
     mark = new ArrayList<>(mark_in);
+    uni_date = new checksyn().getUni_date();
 
     for (var count = 0; count < in.size(); count++) {
       time.add(in.get(count));
@@ -29,7 +27,7 @@ public class expectval {
     var out = "";
     plus_odd = plus_points = minus_odd = minus_points = 0;
 
-    mark.forEach((mark_tmp) -> {
+    mark.forEach((mark_tmp)-> {
       var time_tmp = LocalDate.parse(time.get(mark_tmp), uni_date);
       var target = 0;
 
@@ -87,16 +85,6 @@ public class expectval {
     plus_odd = plus_odd / mark.size();
     minus_odd = minus_odd / mark.size();
     out = String.valueOf(plus_odd * plus_points + minus_odd * minus_points);
-    return out;
-  }
-
-  public String getPlus_ref() {
-    var out = "odd:" + plus_odd + "points:" + plus_points;
-    return out;
-  }
-
-  public String getMinus_ref() {
-    var out = "odd:" + minus_odd + "points:" + minus_points;
     return out;
   }
 }

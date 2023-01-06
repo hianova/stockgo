@@ -13,11 +13,11 @@ public class manager extends config {
   public void add(ArrayList<String> in) throws Exception {
     var url = in.get(0).replace(" ", "");
 
-    if (label_url.contains(url)) {
-      System.out.println("URL exist line: " + label_url.lastIndexOf(url));
+    if (label_URL.contains(url)) {
+      System.out.println("URL exist line: " + label_URL.indexOf(url));
       return;
     }
-    label_url.add(url);
+    label_URL.add(url);
     label_title.add(in.get(1));
     label_folder.add(in.get(2).isBlank() ?
         check.UrlToName(url.split("@Post:")[0]) : in.get(2));
@@ -25,13 +25,13 @@ public class manager extends config {
     label_status.add(in.get(4).isBlank() ?
         LocalDate.now().minusYears(10).format(uni_date) : in.get(4));
     download(url);
-    label_status.set(label_url.lastIndexOf(url), LocalDate.now().format(uni_date));
+    label_status.set(label_URL.indexOf(url), LocalDate.now().format(uni_date));
     sync_config();
     System.out.println(in.get(1) + " added");
   }
 
   public void delete(int in) throws Exception {
-    label_url.remove(in);
+    label_URL.remove(in);
     label_title.remove(in);
     label_folder.remove(in);
     label_tag.remove(in);
@@ -45,7 +45,7 @@ public class manager extends config {
       if (Period.between(LocalDate.parse(label_status.get(count), uni_date),
           LocalDate.now()).getDays() > 1) {
         try {
-          download(label_url.get(count));
+          download(label_URL.get(count));
           label_status.set(count, LocalDate.now().format(uni_date));
           sync_config();
         } catch (Exception e) {
@@ -57,15 +57,15 @@ public class manager extends config {
   }
 
   public void download(String in) throws Exception {
-    var dir = downloads_dir + label_folder.get(label_url.lastIndexOf(in)) +
-        System.getProperty("file.separator");
+    var dir = downloads_dir + label_folder.get(label_URL.indexOf(in)) +
+        File.separator;
 
     new File(dir).mkdir();
     batch_num(in, "").forEach((num) -> {
       try {
         batch_time(in, "").forEach((time) -> {
           try {
-            var url = in.replaceAll("@date", toOri_date_form(time, in))
+            var url = in.replaceAll("@date", getOri_dateform(time, in))
                 .replaceAll("@num", num).split("@Post:");
             var crawl = new crawl(url[0]);
             var path_tmp = dir + check.UrlToName(url[0]);

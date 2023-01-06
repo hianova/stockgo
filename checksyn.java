@@ -1,153 +1,127 @@
 package com.mycompany.stockgo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import java.io.FileInputStream;
-import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Random;
-import java.util.Scanner;
 import java.util.regex.Pattern;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
 public class checksyn {
 
-  private final Random random;
-  private final Hashtable<String, String> tag;
-  private final DateTimeFormatter uni_date;
-  private final String downloads_dir, strategy_dir;
-  private final ArrayList<String> num_stock, num_ETF;
-
-  public checksyn() throws Exception {
-    random = new Random();
-    tag = new Hashtable<>();
-    uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
-    downloads_dir =
-        System.getProperty("user.dir") + System.getProperty("file.separator") + "downloads"
-            + System.getProperty("file.separator");
-    strategy_dir =
-        System.getProperty("user.dir") + System.getProperty("file.separator") + "strategy"
-            + System.getProperty("file.separator");
-    num_stock = new ArrayList<>();
-    num_ETF = new ArrayList<>();
-
-    var parse_rule = new String(new FileInputStream(
-        System.getProperty("user.dir") + System.getProperty("file.separator")
-            + "parse_rule.txt").readAllBytes()).replace("\"", "").split("\n");
-    for (var tmp : parse_rule) {
-      tag.put(tmp.split(":")[0], tmp.split(":")[1]);
-    }
-  }
-
-  public String UrlToName(String in) throws Exception {
-    var out = "";
-    var list = new String[]{"\\.\\w+", "_@num", "_@date", "@num", "@date"};
-    var url = new URL(in).getPath();
-    for (var list_tmp : list) {
-      url = url.replaceAll(list_tmp, "");
-    }
+  public String UrlToName(String in) {
+    var url = in.replaceAll("(\\.\\w+|_@num|_@date|@num|@date)", "");
     var tmp = url.split("/");
-    out = tmp[tmp.length - 2] + "_" + tmp[tmp.length - 1];
+    var out = tmp[tmp.length - 2] + "_" + tmp[tmp.length - 1];
     return out;
   }
 
-  public String getTag(String in) {
-    var out = tag.get(in);
+  public String getTag(String in) throws Exception {
+    var file = new ObjectMapper().readTree(
+        new File(System.getProperty("user.dir") + File.separator + "parse_rule.txt"));
+    var out = file.at("/" + in).textValue();
     return out;
   }
 
   public ArrayList<String> getNum(String in) throws Exception {
-    var out = new ArrayList<String>();
+    ArrayList<String> out;
 
     switch (in) {
-      case "stock" -> out.addAll(new checksyn().getStock_num());
-      case "ETF" -> out.addAll(new checksyn().getETF_num());
+      case "stock" -> out = getStock_num();
+      case "ETF" -> out = getETF_num();
+      default -> out = new ArrayList<>();
     }
     return out;
   }
 
-  public ArrayList<String> getStock_num() throws Exception {
+  public ArrayList<String> getStock_num() throws Exception {//beta
     var out = new ArrayList<String>();
     var pattern = Pattern.compile("^[0-9]{4}　");
 
-    if (num_stock.isEmpty()) {
-      new data(downloads_dir + "上市證券代號" + System.getProperty("file.separator")
-          + "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData()
-          .forEach((tmp) -> {
-            if (pattern.matcher(tmp).find()) {
-              num_stock.add(tmp.split("　")[0]);
-            }
-          });
-      new data(downloads_dir + "上櫃證券代號" + System.getProperty("file.separator")
-          + "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData()
-          .forEach((tmp) -> {
-            if (pattern.matcher(tmp).find()) {
-              num_stock.add(tmp.split("　")[0]);
-            }
-          });
-    }
-    out = num_stock;
+    new data(getDownloads_dir() + "上市證券代號" + File.separator + "isin_C_public.txt",
+        new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
+      if (pattern.matcher(tmp).find()) {
+        out.add(tmp.split("　")[0]);
+      }
+    });
+    new data(getDownloads_dir() + "上櫃證券代號" + File.separator + "isin_C_public.txt",
+        new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
+      if (pattern.matcher(tmp).find()) {
+        out.add(tmp.split("　")[0]);
+      }
+    });
     return out;
   }
 
-  public ArrayList<String> getETF_num() throws Exception {
+  public ArrayList<String> getETF_num() throws Exception {//beta
     var out = new ArrayList<String>();
     var pattern = Pattern.compile("^T[0-9]+\\w");
 
-    if (num_ETF.isEmpty()) {
-      new data(downloads_dir + "基金＿國際證券代號" + System.getProperty("file.separator")
-          + "isin_C_public.txt", new ArrayList<>(List.of("有價證券代號及名稱"))).getData()
-          .forEach((tmp) -> {
-            if (pattern.matcher(tmp).find()) {
-              num_ETF.add(tmp.split("　")[0]);
-            }
-          });
-    }
-    out = num_ETF;
+    new data(getDownloads_dir() + "基金＿國際證券代號" + File.separator + "isin_C_public.txt",
+        new ArrayList<>(List.of("有價證券代號及名稱"))).getData().forEach((tmp) -> {
+      if (pattern.matcher(tmp).find()) {
+        out.add(tmp.split("　")[0]);
+      }
+    });
     return out;
   }
 
   public String getDownloads_dir() {
-    var out = downloads_dir;
+    var out = System.getProperty("user.dir") + File.separator + "downloads" + File.separator;
     return out;
   }
 
   public String getStrategy_dir() {
-    var out = strategy_dir;
+    var out = System.getProperty("user.dir") + File.separator + "strategy" + File.separator;
     return out;
   }
 
   public String getUA() throws Exception {
-    var out = "";
     var file_in = new FileInputStream(
-        System.getProperty("user.dir") + System.getProperty("file.separator") + "useragent.txt");
-    var UA = new ArrayList<>(Arrays.asList(new String(file_in.readAllBytes()).split("\n")));
-
-    out = UA.get(random.nextInt(UA.size()));
+        System.getProperty("user.dir") + File.separator + "useragent.txt");
+    var UA = new ArrayList<>(List.of(new String(file_in.readAllBytes()).split("\n")));
+    var out = UA.get(new Random().nextInt(UA.size()));
     return out;
   }
 
   public DateTimeFormatter getUni_date() {
-    var out = uni_date;
+    var out = DateTimeFormatter.ofPattern("yyyyMMdd");
     return out;
   }
 
-  public Elements clean_rowspan(Elements in) {
-    Elements out = in;
+  public Elements clean_html(Document in) {//beta
+    var out = new Elements();
 
-    out.forEach((row) -> {
-      row.children().forEach((cell) -> {
+    in.select("tr").forEach((tmp) -> {
+      if (tmp.children().select("table").size() == 0 && tmp.parent().select("table").size() == 0) {
+        tmp.select("br").forEach(Node::remove);
+        out.add(tmp);
+      }
+    });
+    for (var row_count = 0; row_count < out.size(); row_count++) {
+      var row = out.get(row_count);
+      for (var cell_count = 0; cell_count < row.childrenSize(); cell_count++) {
+        var cell = row.children().get(cell_count);
+        if (cell.hasAttr("colspan")) {
+          var colspan = Integer.parseInt(cell.attr("colspan"));
+          for (int count = 1; count < colspan; count++) {
+            row.insertChildren(cell_count + count, cell.clone().removeAttr("colspan"));
+          }
+        }
         if (cell.hasAttr("rowspan")) {
           var span_count = Integer.parseInt(cell.attr("rowspan"));
           for (var count = 1; count < span_count; count++) {
-            out.get(row.elementSiblingIndex() + count)
-                .insertChildren(cell.elementSiblingIndex(), cell.clone().removeAttr("rowspan"));
+            out.get(row_count + count)
+                .insertChildren(cell_count, cell.clone().removeAttr("rowspan"));
           }
         }
-      });
-    });
+      }
+    }
     return out;
   }
 }
