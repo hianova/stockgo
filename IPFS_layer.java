@@ -8,8 +8,6 @@ import io.ipfs.cid.Cid;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.Arrays;
 
 public class IPFS_layer extends config {
@@ -22,48 +20,49 @@ public class IPFS_layer extends config {
   }
 
   public String share_file(int in) throws Exception {
-    var out = "";
     var json = new ObjectMapper().createObjectNode();
-    json.put("config",
-        label_URL.get(in) + "," + label_title.get(in) + "," + label_folder.get(in) + ","
-            + label_tag.get(in) + "," + label_status.get(in));
+    var json_config = json.putObject("config");
     var json_file = json.putObject("file");
+    String out;
+
+    json_config.put("title", label_title.get(in));
+    json_config.put("URL", label_URL.get(in));
+    json_config.put("folder", label_folder.get(in));
+    json_config.put("tag", label_tag.get(in));
+    json_config.put("status", label_status.get(in));
     Arrays.stream(new File(downloads_dir + label_folder.get(in) + File.separator).listFiles())
-        .iterator().forEachRemaining((tmp) -> {
+        .iterator().forEachRemaining((file) -> {
           try {
-            var cid = ipfs.add(new ByteArrayWrapper(new FileInputStream(tmp).readAllBytes()));
-            json_file.put(tmp.getName().replace(".txt", ""), cid.get(0).toString().split("-")[0]);
+            var tmp = ipfs.add(new ByteArrayWrapper(new FileInputStream(file).readAllBytes()));
+            json_file.putObject(file.getName().split("\\.")[0])
+                .put("/", tmp.get(0).toString().split("-")[0]);
           } catch (Exception e) {
-            System.out.println("IPFS cant upload");
+            System.out.println("IPFS cant upload " + e);
           }
         });
-    out = ipfs.dag.put(json.toPrettyString().getBytes()).toString().replace("-", "");
+    out = ipfs.dag.put(json.toPrettyString().getBytes()).toString().split("-")[0];
     return out;
   }
-
   public void get_file(String in) throws Exception {
     var json = (ObjectNode) new ObjectMapper().readTree(ipfs.dag.get(Cid.decode(in)));
-    var file = json.get("file").fields();
-    var config = json.get("config").textValue().split(",");
+    var tmp = downloads_dir + json.at("/config/title").textValue() + File.separator;
 
-    label_URL.add(config[0]);
-    label_title.add(config[1]);
-    label_folder.add(config[2]);
-    label_tag.add(config[3]);
-    label_status.add(config[4]);
-    sync_config();
-    file.forEachRemaining((tmp)-> new Thread(() -> {
-      new File(downloads_dir + config[2] + File.separator).mkdir();
-      var file_tmp = new File(downloads_dir + config[2] + File.separator + tmp.getKey() + ".txt");
+    json.at("/file").fields().forEachRemaining((file_tmp) -> new Thread(() -> {
       try {
-        var file_out = new OutputStreamWriter(new FileOutputStream(file_tmp));
-        file_tmp.createNewFile();
-        file_out.write(new String(ipfs.get(Cid.decode(tmp.getValue().textValue()))));
+        new File(tmp).mkdir();
+        new File(tmp + file_tmp.getKey() + ".txt").createNewFile();
+        var file_out = new FileOutputStream(tmp + file_tmp.getKey() + ".txt");
+        file_out.write(ipfs.get(Cid.decode(file_tmp.getValue().get("/").textValue())));
         file_out.close();
-      } catch (IOException e) {
-        System.out.println("IPFS gone wrong");
+      } catch (Exception e) {
+        System.out.println("IPFS gone wrong " + e);
       }
     }).start());
+    label_title.add(json.at("/config/title").textValue());
+    label_URL.add(json.at("/config/URL").textValue());
+    label_folder.add(json.at("/config/folder").textValue());
+    label_tag.add(json.at("/config/tag").textValue());
+    label_status.add(json.at("/config/status").textValue());
+    sync_config();
   }
-
 }

@@ -33,7 +33,7 @@ public class data {
       body_html = page.select(check.getTag(tag + "/body"));
 
       if (in.contains("etfDiv")) {
-        head_html = page.select("thead>tr>th");
+        head_html = page.select("tr>th");
       }
       request_in.forEach((req_tmp) -> {
         var tmp = req_tmp.split("#")[0];

@@ -64,16 +64,17 @@ public class stockgo {
         man.delete(Integer.parseInt(in.replace("-D ", "")));
         manage_layout();
       }
-      case "-syntax" -> syntax_layout(1);
-      case "-In" -> {
-        new IPFS_layer().get_file(in.replace("-In ", ""));
+      case "-I" -> {
+        new IPFS_layer().get_file(in.replace("-I ", ""));
         man.update();
         System.out.println("File imported");
+        manage_layout();
       }
-      case "-Out" -> {
-        var tmp = new IPFS_layer().share_file(Integer.parseInt(in.replace("-Out ", "")));
+      case "-O" -> {
+        var tmp = new IPFS_layer().share_file(Integer.parseInt(in.replace("-O ", "")));
         System.out.println(tmp);
       }
+      case "-syntax" -> syntax_layout(1);
       default -> System.out.println("command not found");
     }
   }
@@ -95,12 +96,12 @@ public class stockgo {
         var in_tmp = in.replace("-E ", "");
         sel.export(in_tmp, true);
       }
-      case "-BT" -> {
+      case "-T" -> {
         if (sel == null) {
           System.out.println("please select data(-D) first");
           break;
         }
-        sel.setMark(in.replace("-BT ", ""));
+        sel.setMark(in.replace("-T ", ""));
         System.out.println(sel.mark_exp_val());
       }
       case "-detail" -> {
@@ -127,14 +128,14 @@ public class stockgo {
     System.out.println("Select \"manage\" function:");
     System.out.println("                           -A(add list) -U(update list) -D(del list)\n");
     System.out.println(
-        "                           -syntax(how to use) -In(import list) -Out(export list)");
+        "                           -syntax(how to use) -I(import list) -O(export list)");
     System.out.println(new config().getConfig());
   }
 
   public static void select_layout() {
     System.out.println("Select \"select\" function:");
     System.out.println(
-        "                           -D(select data) -E(export data) -BT(back test data)");
+        "                           -D(select data) -E(export data) -T(back test data)");
     System.out.println(
         "                           -detail(quick check on data) -syntax(how to use)");
   }
@@ -147,15 +148,15 @@ public class stockgo {
             "    -A(add list): type in -A [URL,custom title,custom folder_name,tags,date]");
         System.out.println("    -U(update list): update to today");
         System.out.println("    -D(del list): type in -D [number of list]");
-        System.out.println("    -In(import list): type in -In [CID]");
-        System.out.println("    -Out(export list): type in -Out [number of list]");
+        System.out.println("    -I(import list): type in -I [CID]");
+        System.out.println("    -O(export list): type in -O [number of list]");
       }
       case 2 -> {
         System.out.println("\n-S(select data) page command:");
         System.out.println(
             "    -D(select data): type in -D [URL/title -request req.req... option:(-date 8digit~8digit)(-numbers num.num...)],[]...");
         System.out.println("    -E(export data): type in -E [path](default:downloads/exports.csv)");
-        System.out.println("    -BT(back test data): type in -BT [strategy]");
+        System.out.println("    -T(back test data): type in -T [strategy]");
         System.out.println("    -detail(quick check on data): brief detail of data");
       }
     }

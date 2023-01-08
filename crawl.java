@@ -12,23 +12,22 @@ public class crawl extends Thread {
 
   private final checksyn check;
   private final HttpURLConnection trans;
-  private final String tag;
-  private File file;
+  private String tag, file;
 
   public crawl(String in) throws Exception {
     var url = new URL(in);
     check = new checksyn();
     trans = (HttpURLConnection) url.openConnection();
     tag = url.getHost().replace(".", "_");
-    file = new File(check.getDownloads_dir() + check.UrlToName(in) + ".txt");
+    file = check.getDownloads_dir() + check.UrlToName(in) + ".txt";
 
     trans.setRequestProperty("Referer", in);
     trans.setRequestProperty("Host", url.getHost());
     trans.setRequestProperty("Accept", "text/html,*/*");
     trans.setRequestProperty("Connection", "keep-alive");
     trans.setRequestProperty("User-Agent", check.getUA());
-    trans.setRequestProperty("Origin", "https://"+url.getHost());
-    trans.setRequestProperty("X-Requested-With","XMLHttpRequest");
+    trans.setRequestProperty("Origin", "https://" + url.getHost());
+    trans.setRequestProperty("X-Requested-With", "XMLHttpRequest");
     trans.setRequestProperty("Accept-Language", "zh-TW,zh-Hant;q=0.9");
     trans.setRequestProperty("Content-Type",
         "application/x-www-form-urlencoded; charset=" + check.getTag(tag + "/encode"));
@@ -41,14 +40,14 @@ public class crawl extends Thread {
   }
 
   public void setPath(String in) {
-    file = new File(in);
+    file = in;
   }
 
   public void save() throws Exception {
     var file_out = new FileOutputStream(file);
     var page = new String(trans.getInputStream().readAllBytes(), check.getTag(tag + "/encode"));
 
-    file.createNewFile();
+    new File(file).createNewFile();
     if (page.contains("<body")) {
       var tmp = page + "<tag>" + tag + "</tag>";
       file_out.write(tmp.getBytes(StandardCharsets.UTF_8));
@@ -59,7 +58,7 @@ public class crawl extends Thread {
     }
     file_out.close();
     trans.disconnect();
-    System.out.print(file.getName() + " saved\n");
+    System.out.print(file + " saved\n");
   }
 
   public void run() {

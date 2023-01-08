@@ -15,7 +15,7 @@ import org.jsoup.select.Elements;
 public class checksyn {
 
   public String UrlToName(String in) {
-    var url = in.replaceAll("(\\.\\w+|_@num|_@date|@num|@date)", "");
+    var url = in.replaceAll("(\\.\\w+|@num|@date|\\?.+)", "");
     var tmp = url.split("/");
     var out = tmp[tmp.length - 2] + "_" + tmp[tmp.length - 1];
     return out;
