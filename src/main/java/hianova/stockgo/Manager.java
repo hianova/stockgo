@@ -26,7 +26,7 @@ public class Manager extends Config {
     label_tag.add(listIn.get(3));
     label_status.add(listIn.get(4));
     download(listIn.get(1));
-    label_status.set(label_title.indexOf(listIn.get(0)), LocalDate.now().format(uni_date));
+    label_status.set(label_title.indexOf(listIn.get(0)),LocalDate.now().format(uni_date));
     syncConfig();
     System.out.println(listIn.get(0) + " added");
   }

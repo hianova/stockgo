@@ -10,11 +10,11 @@ public class Selecter extends Config {
 
   private final String[] URL, num, date;
   private final ArrayList<String>[] req, data;
-  private final boolean assertDate;
+  private final boolean assert_date;
 
   public Selecter(ArrayList<String> cmdIn, boolean dateIn) throws Exception {
     var size = cmdIn.size();
-    assertDate = dateIn;
+    assert_date = dateIn;
     URL = new String[size];
     num = new String[size];
     date = new String[size];
@@ -48,7 +48,7 @@ public class Selecter extends Config {
       });
     });
     var sum = IntStream.range(0, req.length)
-        .map(next -> (assertDate && URL[next].contains("@date"))
+        .map(next -> (assert_date && URL[next].contains("@date"))
             ? req[next].size() + 1
             : req[next].size())
         .sum();
@@ -72,7 +72,7 @@ public class Selecter extends Config {
                       + (URL[nextURL].contains("@num") ? "_" + nextnum : "")
                       + (URL[nextURL].contains("@date") ? "_" + nextdate : "") + ".txt";
                   var tmp = new Parse(path, req[nextURL]).data();
-                  if (assertDate && URL[nextURL].contains("@date")) {
+                  if (assert_date && URL[nextURL].contains("@date")) {
                     data[nextURL] = new ArrayList<>();
                     IntStream.range(0, tmp[0].size())
                         .forEach(next -> data[nextURL].add(nextdate));
@@ -110,7 +110,7 @@ public class Selecter extends Config {
           .forEach(nextReq -> IntStream.range(0, req[nextReq].size()).forEach(nextNum -> {
             var mark = nextReq == req.length - 1 && nextNum == req[nextReq].size() - 1 ? "\n" : ",";
             try {
-              if (assertDate && URL[nextReq].contains("@date") && nextNum == 0) {
+              if (assert_date && URL[nextReq].contains("@date") && nextNum == 0) {
                 output.write(("\"日期\",").getBytes());
               }
               output.write(("\"" + req[nextReq].get(nextNum) + "\"" + mark).getBytes());
@@ -137,8 +137,8 @@ public class Selecter extends Config {
   }
 
   public String backTest(String pathIn) throws Exception {
-    String out = "";
     var tmp = new BackTest(data, pathIn);
+    String out = "";
     // out = tmp.getExpecVal();
     return out;
   }

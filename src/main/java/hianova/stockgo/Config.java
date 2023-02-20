@@ -14,13 +14,12 @@ import java.util.stream.IntStream;
 public class Config {
 
   protected final Check check;
-  protected final DateTimeFormatter uni_date;
   protected final ArrayList<String> label_title, label_URL, label_folder, label_tag, label_status;
   protected final String strategy_dir, downloads_dir;
+  protected final DateTimeFormatter uni_date;
 
   public Config() throws Exception {
     check = new Check();
-    uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
     label_title = new ArrayList<>();
     label_URL = new ArrayList<>();
     label_folder = new ArrayList<>();
@@ -28,6 +27,7 @@ public class Config {
     label_status = new ArrayList<>();
     strategy_dir = check.strategyDir();
     downloads_dir = check.downloadsDir();
+    uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     new ObjectMapper().readTree(new File(downloads_dir + "config.json")).fields()
         .forEachRemaining(next -> {

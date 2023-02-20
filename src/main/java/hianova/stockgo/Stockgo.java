@@ -36,13 +36,13 @@ public class Stockgo {
       }
       switch (match.group(0)) {
         case "-M" -> {
-          manageLayout();
+          managerLayout();
           while (!(cmd = input.nextLine()).matches("(exit)")) {
             manager(cmd);
           }
         }
         case "-S" -> {
-          selectLayout();
+          selecterLayout();
           while (!(cmd = input.nextLine()).matches("(exit)")) {
             selecter(cmd);
           }
@@ -65,14 +65,14 @@ public class Stockgo {
     out.println("                -M(manage config) -S(select data) -IPFS(IPFS dedicate)");
   }
 
-  private static void manageLayout() {
+  private static void managerLayout() {
     out.println("Select \"manage\" function:");
     out.println("                           -A(add list) -U(update list) -D(del list)\n");
     out.println("                           -help(how to use)");
     out.println(man.listConfig());
   }
 
-  private static void selectLayout() {
+  private static void selecterLayout() {
     out.println("Select \"select\" function:");
     out.println("                           -D(select data) -E(export data) -T(back test data)");
     out.println("                           -view(quick view on data)");
@@ -120,7 +120,7 @@ public class Stockgo {
       case "-U" -> man.update();
       case "-D" -> {
         man.delete(Integer.parseInt(cmdIn.replace("-D ", "")));
-        manageLayout();
+        managerLayout();
       }
       case "-help" -> helpLayout("manager");
       default -> out.println("command not found");
@@ -138,7 +138,7 @@ public class Stockgo {
         ipfs.add(cmdIn.replace("-I ", ""));
         man.update();
         out.println("file imported");
-        manageLayout();
+        managerLayout();
       }
       case "-O" -> out.println(ipfs.share(Integer.parseInt(cmdIn.replace("-O ", ""))));
       case "-help" -> helpLayout("ipfsLayer");

@@ -7,6 +7,11 @@ import java.io.FileOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import javax.cache.Caching;
+import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.CreatedExpiryPolicy;
+import javax.cache.expiry.Duration;
+
 public class Crawl {
 
   private final Check check;
@@ -16,8 +21,8 @@ public class Crawl {
   private String path;
 
   public Crawl(String URLIN) throws Exception {
-    var URL = new URL(URLIN.replace("https", "http"));
     check = new Check();
+    var URL = new URL(URLIN.replace("https", "http"));
     trans = (HttpURLConnection) URL.openConnection();
     tag = URL.getHost().replace(".", "_");
     encode = check.tag(tag + "/encode");
@@ -37,11 +42,10 @@ public class Crawl {
   }
 
   public void setPost(String formIn) throws Exception {
-    var tmp = formIn.replace(" ", "").replaceAll("\n", "&");
-
     trans.setDoOutput(true);
     trans.setRequestMethod("POST");
-    trans.getOutputStream().write(tmp.getBytes());
+    trans.getOutputStream().write(formIn.replace(" ", "")
+        .replaceAll("\n", "&").getBytes());
   }
 
   public void setPath(String pathIn) {
@@ -50,21 +54,27 @@ public class Crawl {
 
   public void save() throws Exception {
     var output = new FileOutputStream(path);
-    var file = new String(trans.getInputStream().readAllBytes(), encode);
-
+    var file = new String(trans.getInputStream().readAllBytes(), encode);  
+    var cacheManager = Caching.getCachingProvider().getCacheManager();
+    var cache = cacheManager.createCache("file",
+        new MutableConfiguration<String, String>()
+            .setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(Duration.TWENTY_MINUTES))
+            .setStatisticsEnabled(true)
+            .setManagementEnabled(true));
+    
     new File(path).createNewFile();
-    if (file.contains("html")) {
-      var tmp = file + "<tag>" + tag + "</tag>";
-      output.write(tmp.getBytes("UTF-8"));
+    if (check.isHTML(file)) {
+      file = file + "<tag>" + tag + "</tag>";
     } else if (check.isJSON(file)) {
       var tmp = (ObjectNode) new ObjectMapper().readTree(file);
       tmp.put("tag", tag);
-      output.write(tmp.toPrettyString().getBytes("UTF-8"));
-    } else {
-      output.write(file.getBytes("UTF-8"));
+      file = tmp.toPrettyString();
     }
+    cache.put(path, file);
+    output.write(file.getBytes("UTF-8"));
     output.close();
     trans.disconnect();
+    cacheManager.close();
     System.out.println(path + " added");
   }
 }

@@ -15,15 +15,14 @@ public class BackTest {
   private BigInteger pos_point, neg_point;
 
   public BackTest(ArrayList<String>[] data_in, String file_in) throws Exception {
-    data = data_in;
     var input = new FileInputStream(file_in);
     var script = new ScriptEngineManager().getEngineByName("javascript");
+    data = data_in;
 
     script.put("data_in", data);
     mark = (ArrayList<Integer>) script.eval(new String(input.readAllBytes()));
     input.close();
   }
-
 
   public String expecVal(String time_in) {
     String out = "";
@@ -31,9 +30,9 @@ public class BackTest {
     return out;
   }
 
-  public HashMap<String,String> getStatistics() {
+  public HashMap<String, String> getStatistics() {
     var out = new HashMap<String, String>();
-    
+
     out.put("pos_odd", String.valueOf(pos_odd));
     out.put("neg_odd", String.valueOf(neg_odd));
     out.put("pos_point", pos_point.toString());

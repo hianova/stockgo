@@ -28,10 +28,23 @@ public class Check {
         .at("/" + tagIn).textValue();
 
     if (out == null) {
-      switch (tagIn.split("/")[1]) {
+      var tmp = tagIn.split("/");
+      switch (tmp[1]) {
         case "encode" -> out = "UTF-8";
-        case "head" -> out = "tr:eq(0)";
-        case "body" -> out = "tr:gt(0)";
+        case "head" -> {
+          if (tmp[2] == "JSON") {
+            out = "fields";
+          } else if (tmp[2] == "HTML") {
+            out = "tr:eq(0)";
+          }
+        }
+        case "body" -> {
+          if (tmp[2] == "JSON") {
+            out = "data";
+          } else if (tmp[2] == "HTML") {
+            out = "tr:gt(0)";
+          }
+        }
       }
     }
     return out;
@@ -40,6 +53,7 @@ public class Check {
   public ArrayList<String> num(String typeIn) throws Exception {
     ArrayList<String> out;
     var tmp = typeIn.split(":");
+
     switch (tmp[0]) {
       case "stock" -> out = stockNum(tmp.length > 1 ? tmp[1] : "");
       case "ETF" -> out = ETFNum();
@@ -50,8 +64,8 @@ public class Check {
 
   public ArrayList<String> stockNum(String typeIn) throws Exception {
     var out = new ArrayList<String>();
-    var match = Pattern.compile("^[0-9]{4}　");
     var list = new ArrayList<String>();
+    var match = Pattern.compile("^[0-9]{4}　");
 
     switch (typeIn) {
       case "listed" -> {
@@ -114,8 +128,8 @@ public class Check {
   }
 
   public Element cleanHTML(String pathIn) {
-    var out = new Element("html");
     var page = Jsoup.parse(pathIn);
+    var out = new Element("html");
 
     page.select("tr").forEach(nextRow -> {
       if (nextRow.children().select("table").isEmpty()
@@ -148,19 +162,27 @@ public class Check {
   }
 
   public boolean isJSON(String JSONIn) {
+    boolean out;
     try {
       new ObjectMapper().readTree(JSONIn);
-      return true;
+      out=true;
     } catch (Exception e) {
-      return false;
+      out= false;
     }
+    return out;
+  }
+  
+  public boolean isHTML(String HTMLIn) {
+    var tmp = Jsoup.parse(HTMLIn);
+    var out = tmp.childNodeSize() > 0;
+    return out;
   }
 
   public HashMap<String, String> relay(String cmdIn) throws Exception {
     var out = new HashMap<String, String>();
     var file = new ObjectMapper().readTree(new File(downloadsDir() + "relay.json"));
     var cmd = cmdIn.split("-");
-    var title = cmd[0].trim();
+    var title = cmd[0].replace(".", "/").trim();
     var exist = file.has(title);
 
     out.put("URL", exist ? file.at(title + "/URL").asText() : "");
