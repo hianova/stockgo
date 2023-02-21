@@ -4,6 +4,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Manager extends Config {
@@ -26,7 +27,7 @@ public class Manager extends Config {
     label_tag.add(listIn.get(3));
     label_status.add(listIn.get(4));
     download(listIn.get(1));
-    label_status.set(label_title.indexOf(listIn.get(0)),LocalDate.now().format(uni_date));
+    label_status.set(label_title.indexOf(listIn.get(0)), LocalDate.now().format(uni_date));
     syncConfig();
     System.out.println(listIn.get(0) + " added");
   }
@@ -59,6 +60,7 @@ public class Manager extends Config {
 
   public void download(String URLIn) throws Exception {
     var dir = downloads_dir + label_folder.get(label_URL.indexOf(URLIn)) + File.separator;
+    var postPat = Pattern.compile("@Post:");
 
     new File(dir).mkdir();
     streamNum(URLIn, "").forEach(nextNum -> {
@@ -66,12 +68,13 @@ public class Manager extends Config {
         streamDate(URLIn, "").forEach(nextDate -> {
           try {
             var url = URLIn.replace("@date", toOriDate(
-                nextDate,URLIn))
+                nextDate, URLIn))
                 .replace("@num", nextNum).split("@Post:");
             var crawl = new Crawl(url[0]);
-            var path = dir + check.URLToName(url[0]) + (URLIn.contains("@num") ? "_" + nextNum : "")
-                + (URLIn.contains("@date") ? "_" + nextDate : "") + ".txt";
-            if (URLIn.contains("@Post")) {
+            var path = dir + check.URLToName(url[0])
+                + (numPat.matcher(URLIn).find()? "_" + nextNum : "")
+                + (datePat.matcher(URLIn).find() ? "_" + nextDate : "") + ".txt";
+            if (postPat.matcher(URLIn).find()) {
               crawl.setPost(url[1]);
             }
             crawl.setPath(path);

@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.regex.Pattern;
 
 import javax.cache.Caching;
 import javax.cache.configuration.MutableConfiguration;
@@ -42,10 +43,12 @@ public class Crawl {
   }
 
   public void setPost(String formIn) throws Exception {
+    var removePat = Pattern.compile("\n");
+    var replacePat = Pattern.compile(" ");
     trans.setDoOutput(true);
     trans.setRequestMethod("POST");
-    trans.getOutputStream().write(formIn.replace(" ", "")
-        .replaceAll("\n", "&").getBytes());
+    trans.getOutputStream().write(removePat.matcher(
+      replacePat.matcher(formIn).replaceAll("")).replaceAll("&").getBytes()); 
   }
 
   public void setPath(String pathIn) {

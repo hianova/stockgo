@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -16,6 +17,7 @@ public class Config {
   protected final Check check;
   protected final ArrayList<String> label_title, label_URL, label_folder, label_tag, label_status;
   protected final String strategy_dir, downloads_dir;
+  protected final Pattern numPat, datePat;
   protected final DateTimeFormatter uni_date;
 
   public Config() throws Exception {
@@ -27,6 +29,8 @@ public class Config {
     label_status = new ArrayList<>();
     strategy_dir = check.strategyDir();
     downloads_dir = check.downloadsDir();
+    numPat = Pattern.compile("(@)num");
+    datePat = Pattern.compile("(@)date");
     uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     new ObjectMapper().readTree(new File(downloads_dir + "config.json")).fields()
@@ -40,40 +44,42 @@ public class Config {
   }
 
   public ArrayList<String> streamDate(String URLIn, String stEdIn) {
-    if (!URLIn.contains("@date")) {
-      return new ArrayList<>(List.of("null"));
+    if (!datePat.matcher(URLIn).find()) {
+      return new ArrayList<>(List.of(""));
     }
     var out = new ArrayList<String>();
     var num = label_URL.indexOf(URLIn);
-    var dateTag = Arrays.stream(label_tag.get(num).split("@"))
-        .dropWhile(next -> next.contains("date")).collect(Collectors.joining()).split(":");
-    var assertDC = dateTag[1].contains("yyyy");
-    var stEd = stEdIn.matches("\\d+~\\d+") ? new LocalDate[] {
-        LocalDate.parse(stEdIn.split("~")[0], uni_date),
-        LocalDate.parse(stEdIn.split("~")[1], uni_date) }
-        : new LocalDate[] { LocalDate.parse(label_status.get(num), uni_date), LocalDate.now() };
+    var dateTag = Arrays.stream(label_tag.get(num).split(",")).dropWhile(
+        next -> datePat.matcher(next).find()).collect(Collectors.joining()).split(":");
+    var assertDC = Pattern.compile("yyyy").matcher(dateTag[1]).find();
+    var stEd = Pattern.compile(
+        "\\d+~\\d+").matcher(stEdIn).find() ? new LocalDate[] {
+            LocalDate.parse(stEdIn.split("~")[0], uni_date),
+            LocalDate.parse(stEdIn.split("~")[1], uni_date) }
+            : new LocalDate[] { LocalDate.parse(label_status.get(num), uni_date), LocalDate.now() };
 
     while (stEd[0].isBefore(stEd[1])) {
       var tmp = assertDC ? stEd[0] : stEd[0].minusYears(1911);
       out.add(tmp.format(uni_date));
-      switch (dateTag[2]) {
-        case "Y" -> stEd[0] = stEd[0].plusYears(1);
-        case "M" -> stEd[0] = stEd[0].plusMonths(1);
-        case "W" -> stEd[0] = stEd[0].plusWeeks(1);
-        case "D" -> stEd[0] = stEd[0].plusDays(1);
+      if (dateTag[2].equals("M")) {
+        stEd[0] = stEd[0].plusMonths(1);
+      } else if (dateTag[2].equals("W")) {
+        stEd[0] = stEd[0].plusWeeks(1);
+      } else if (dateTag[2].equals("D")) {
+        stEd[0] = stEd[0].plusDays(1);
       }
     }
     return out;
   }
 
   public ArrayList<String> streamNum(String URLIn, String numIn) throws Exception {
-    if (!URLIn.contains("@num")) {
-      return new ArrayList<>(List.of("null"));
+    if (!numPat.matcher(URLIn).find()) {
+      return new ArrayList<>(List.of(""));
     }
     var num = label_URL.indexOf(URLIn);
-    var tag = Arrays.stream(label_tag.get(num).split("@"))
-        .dropWhile(next -> next.contains("num")).collect(Collectors.joining()).split(":");
-    var tmp = numIn.matches("\\w(\\.\\w)+") ? List.of(numIn.split("\\.")) : check.num(tag[1]);
+    var tag = Arrays.stream(label_tag.get(num).split(",")).dropWhile(
+        next -> numPat.matcher(next).find()).collect(Collectors.joining()).split(":");
+    var tmp = Pattern.compile("\\w(\\.\\w)+").matcher(numIn).find() ? List.of(numIn.split("\\.")) : check.num(tag[1]);
     var out = new ArrayList<>(tmp);
     return out;
   }
@@ -89,6 +95,24 @@ public class Config {
 
   public void syncConfig() throws Exception {
     var output = new FileOutputStream(downloads_dir + "config.txt");
+
+    output.write(toString().getBytes());
+    output.close();
+  }
+
+  public String toOriDate(String dateIn, String URLIn) {
+    if (dateIn.isBlank()) {
+      return dateIn;
+    }
+    var out = LocalDate.parse(dateIn, uni_date).format(DateTimeFormatter.ofPattern(
+        Arrays.stream(label_tag.get(label_URL.indexOf(URLIn))
+            .split(",")).dropWhile(next -> numPat.matcher(next).find())
+            .collect(Collectors.joining()).split(":")[1]));
+    return out;
+  }
+  @Override
+  public String toString() {
+    String out;
     var json = new ObjectMapper().createObjectNode();
 
     label_title.forEach(next -> {
@@ -99,18 +123,7 @@ public class Config {
       node.put("tag", label_tag.get(num));
       node.put("status", label_status.get(num));
     });
-    output.write(json.toPrettyString().getBytes());
-    output.close();
-  }
-
-  public String toOriDate(String dateIn, String URLIn) {
-    if (dateIn.contains("null")) {
-      return dateIn;
-    }
-    var out = LocalDate.parse(dateIn, uni_date).format(DateTimeFormatter.ofPattern(
-        Arrays.stream(label_tag.get(label_URL.indexOf(URLIn))
-            .split("@")).dropWhile(next -> next.contains("num"))
-            .collect(Collectors.joining()).split(":")[1]));
+    out = json.toPrettyString();
     return out;
   }
 }

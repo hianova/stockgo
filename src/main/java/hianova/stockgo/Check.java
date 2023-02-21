@@ -17,7 +17,8 @@ import java.util.stream.IntStream;
 public class Check {
 
   public String URLToName(String URLIn) {
-    var tmp = URLIn.replaceAll("(\\.\\w+|@num|@date|\\?.+)", "").split("/");
+    var removePat = Pattern.compile("(\\.\\w+|@num|@date|\\?.+)");
+    var tmp = removePat.matcher(URLIn).replaceAll("").split("/");
     var out = tmp[tmp.length - 2] + "_" + tmp[tmp.length - 1];
     return out;
   }
@@ -29,19 +30,19 @@ public class Check {
 
     if (out == null) {
       var tmp = tagIn.split("/");
-      switch (tmp[1]) {
-        case "encode" -> out = "UTF-8";
-        case "head" -> {
-          if (tmp[2] == "JSON") {
+      if (tmp.length >= 3) {
+        if (tmp[1].equals("encode") && tmp[2].equals("UTF-8")) {
+          out = "UTF-8";
+        } else if (tmp[1].equals("head")) {
+          if (tmp[2].equals("JSON")) {
             out = "fields";
-          } else if (tmp[2] == "HTML") {
+          } else if (tmp[2].equals("HTML")) {
             out = "tr:eq(0)";
           }
-        }
-        case "body" -> {
-          if (tmp[2] == "JSON") {
+        } else if (tmp[1].equals("body")) {
+          if (tmp[2].equals("JSON")) {
             out = "data";
-          } else if (tmp[2] == "HTML") {
+          } else if (tmp[2].equals("HTML")) {
             out = "tr:gt(0)";
           }
         }
@@ -54,10 +55,12 @@ public class Check {
     ArrayList<String> out;
     var tmp = typeIn.split(":");
 
-    switch (tmp[0]) {
-      case "stock" -> out = stockNum(tmp.length > 1 ? tmp[1] : "");
-      case "ETF" -> out = ETFNum();
-      default -> out = new ArrayList<>();
+    if (tmp[0].equals("stock")) {
+      out = stockNum(tmp.length > 1 ? tmp[1] : "");
+    } else if (tmp[0].equals("ETF")) {
+      out = ETFNum();
+    } else {
+      out = new ArrayList<>();
     }
     return out;
   }
@@ -67,23 +70,18 @@ public class Check {
     var list = new ArrayList<String>();
     var match = Pattern.compile("^[0-9]{4}　");
 
-    switch (typeIn) {
-      case "listed" -> {
-        list.add("上市");
-      }
-      case "OTC" -> {
-        list.add("上櫃");
-      }
-      default -> {
-        list.addAll(List.of("上市", "上櫃"));
-      }
-
+    if (typeIn.equals("listed")) {
+      list.add("上市");
+    } else if (typeIn.equals("OTC")) {
+      list.add("上櫃");
+    } else {
+      list.addAll(List.of("上市", "上櫃"));
     }
     list.forEach(nextList -> {
       try {
         new Parse(downloadsDir() + nextList + "證券代號" + File.separator + "isin_C_public.txt",
-            new ArrayList<>(List.of("有價證券代號及名稱"))).data()[0].forEach(next -> {
-              if (match.matcher(next).find()) {
+            new ArrayList<>(List.of("有價證券代號及名稱"))).data()[0].forEach(
+              next -> { if (match.matcher(next).find()) {
                 out.add(next.split("　")[0]);
               }
             });
@@ -165,13 +163,13 @@ public class Check {
     boolean out;
     try {
       new ObjectMapper().readTree(JSONIn);
-      out=true;
+      out = true;
     } catch (Exception e) {
-      out= false;
+      out = false;
     }
     return out;
   }
-  
+
   public boolean isHTML(String HTMLIn) {
     var tmp = Jsoup.parse(HTMLIn);
     var out = tmp.childNodeSize() > 0;

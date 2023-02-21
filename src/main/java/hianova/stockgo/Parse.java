@@ -21,7 +21,7 @@ public class Parse {
     var file = new String();
     var check = new Check();
     var cacheManager = Caching.getCachingProvider().getCacheManager();
-    var cache = cacheManager.getCache("file");
+    var cache = cacheManager.getCache("file" );
     hd = new ArrayList<>();
     bd = new ArrayList<>();
     req = new ArrayList<>();
@@ -32,6 +32,7 @@ public class Parse {
     } else {
       var input = new FileInputStream(pathIn);
       file = new String(input.readAllBytes(), "UTF-8");
+      cache.put(pathIn, file);
       input.close();
     }
     cacheManager.close();
@@ -52,30 +53,31 @@ public class Parse {
           nextRow -> IntStream.range(0, bdTmp.get(nextRow).size())
               .forEach(nextCell -> bd.add(bdTmp.get(nextRow).get(nextCell).textValue())));
     } else {
-      var tmp = file.replaceAll("[\" ]", "").split("\n");
+      var removePat = Pattern.compile("\" ");
+      var tmp = removePat.matcher(file).replaceAll("").split("\n");
       hd.addAll(List.of(tmp[0].split(",")));
       IntStream.range(1, tmp.length).forEach(
           next -> bd.addAll(List.of(tmp[next].split(","))));
     }
-    IntStream.range(0, reqIn.size()).forEach(next -> {
-      req.add(hd.indexOf(reqIn.get(next).split("#")[0]));
-      if (reqIn.contains("#")) {
+    var tagPat = Pattern.compile("#\\w+");
+    IntStream.range(0, reqIn.size()).forEach(nextReq -> {
+      var match = tagPat.matcher(reqIn.get(nextReq));
+      if (match.find()) {
         assertTag = true;
-        req_tag[next] = new ArrayList<>();
-        var match = Pattern.compile("#\\w+").matcher(reqIn.get(next));
-        while (match.find()) {
-          req_tag[next].add(match.group().replace("#", ""));
-        }
-      } else {
-        assertTag = false;
+        req_tag[nextReq] = new ArrayList<>();
+        IntStream.range(0, match.groupCount()).forEach(next -> {
+          req_tag[nextReq].add(match.group(next).replace("#", ""));
+        });
       }
+      req.add(hd.indexOf(reqIn.get(nextReq).split("#")[0]));
     });
   }
 
   public ArrayList<String>[] data() {
     var out = new ArrayList[req.size()];
 
-    IntStream.range(0, out.length).forEach(next -> out[next] = new ArrayList<>());
+    IntStream.range(0, out.length).forEach(
+      next -> out[next] = new ArrayList<>());
     for (var num = 0; num < bd.size(); num += hd.size()) {
       var pass = !assertTag;
       var line = new ArrayList<>();
@@ -87,7 +89,8 @@ public class Parse {
         }
       }
       if (pass) {
-        IntStream.range(0, out.length).forEach(next -> out[next].add(line.get(next)));
+        IntStream.range(0, out.length).forEach(
+          next -> out[next].add(line.get(next)));
       }
     }
     return out;

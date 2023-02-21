@@ -4,17 +4,18 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Selecter extends Config {
 
   private final String[] URL, num, date;
   private final ArrayList<String>[] req, data;
-  private final boolean assert_date;
+  private boolean assert_date;
 
-  public Selecter(ArrayList<String> cmdIn, boolean dateIn) throws Exception {
+  public Selecter(ArrayList<String> cmdIn) throws Exception {
     var size = cmdIn.size();
-    assert_date = dateIn;
+    assert_date = true;
     URL = new String[size];
     num = new String[size];
     date = new String[size];
@@ -32,23 +33,30 @@ public class Selecter extends Config {
         System.out.print("relay not found " + e);
       }
       var cmd = cmdIn.get(nextURL).split("-");
+      var requestPat = Pattern.compile("request");
+      var withDatePat = Pattern.compile("withdate");
       if (URL[nextURL].isBlank()) {
         URL[nextURL] = label_URL.get(label_title.indexOf(cmd[0].trim()));
       }
-      IntStream.range(1, cmd.length).forEach(next -> {
-        var tmp = cmd[next].trim();
-        if (tmp.contains("request")) {
-          req[nextURL] = new ArrayList<>(Arrays.asList(tmp.split("\\.")));
+      for (var count = 1; count < cmd.length; count++) {
+        var tmp = cmd[count].trim();
+        if (withDatePat.matcher(tmp).find() && tmp.replace("withdate=", "") == "false") {
+          assert_date = false;
         }
-        if (tmp.contains("date")) {
-          date[nextURL] = tmp.replace("date ", "");
-        } else if (tmp.contains("num")) {
-          num[nextURL] = tmp.replace("num ", "");
+        if (requestPat.matcher(tmp).find()) {
+          req[nextURL] = new ArrayList<>(Arrays.asList(
+              tmp.replace("request=", "").split("\\.")));
         }
-      });
+        if (datePat.matcher(tmp).find()) {
+          date[nextURL] = tmp.replace("date=", "");
+        }
+        if (numPat.matcher(tmp).find()) {
+          num[nextURL] = tmp.replace("num=", "");
+        }
+      }
     });
     var sum = IntStream.range(0, req.length)
-        .map(next -> (assert_date && URL[next].contains("@date"))
+        .map(next -> (assert_date && datePat.matcher(URL[next]).find())
             ? req[next].size() + 1
             : req[next].size())
         .sum();
@@ -69,10 +77,10 @@ public class Selecter extends Config {
                       URL[nextURL]))
                       + System.getProperty("file.separator") + check.URLToName(
                           URL[nextURL].split("@Post:")[0])
-                      + (URL[nextURL].contains("@num") ? "_" + nextnum : "")
-                      + (URL[nextURL].contains("@date") ? "_" + nextdate : "") + ".txt";
+                      + (numPat.matcher(URL[nextURL]).find() ? "_" + nextnum : "")
+                      + (datePat.matcher(URL[nextURL]).find() ? "_" + nextdate : "") + ".txt";
                   var tmp = new Parse(path, req[nextURL]).data();
-                  if (assert_date && URL[nextURL].contains("@date")) {
+                  if (assert_date && datePat.matcher(URL[nextURL]).find()) {
                     data[nextURL] = new ArrayList<>();
                     IntStream.range(0, tmp[0].size())
                         .forEach(next -> data[nextURL].add(nextdate));
@@ -110,7 +118,7 @@ public class Selecter extends Config {
           .forEach(nextReq -> IntStream.range(0, req[nextReq].size()).forEach(nextNum -> {
             var mark = nextReq == req.length - 1 && nextNum == req[nextReq].size() - 1 ? "\n" : ",";
             try {
-              if (assert_date && URL[nextReq].contains("@date") && nextNum == 0) {
+              if (assert_date && datePat.matcher(URL[nextReq]).find() && nextNum == 0) {
                 output.write(("\"日期\",").getBytes());
               }
               output.write(("\"" + req[nextReq].get(nextNum) + "\"" + mark).getBytes());
