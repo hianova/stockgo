@@ -1,8 +1,9 @@
 package hianova.stockgo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.io.FileOutputStream;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -16,12 +17,13 @@ public class Config {
 
   protected final Check check;
   protected final ArrayList<String> label_title, label_URL, label_folder, label_tag, label_status;
-  protected final String strategy_dir, downloads_dir;
+  protected final String strategy_dir, downloads_dir,seperator;
   protected final Pattern numPat, datePat;
   protected final DateTimeFormatter uni_date;
 
   public Config() throws Exception {
     check = new Check();
+    seperator = check.fileSeperator();
     label_title = new ArrayList<>();
     label_URL = new ArrayList<>();
     label_folder = new ArrayList<>();
@@ -33,7 +35,7 @@ public class Config {
     datePat = Pattern.compile("(@)date");
     uni_date = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-    new ObjectMapper().readTree(new File(downloads_dir + "config.json")).fields()
+    new ObjectMapper().readTree(Paths.get(downloads_dir, "config.json").toFile()).fields()
         .forEachRemaining(next -> {
           label_title.add(next.getKey());
           label_URL.add(next.getValue().get("URL").textValue());
@@ -94,10 +96,7 @@ public class Config {
   }
 
   public void syncConfig() throws Exception {
-    var output = new FileOutputStream(downloads_dir + "config.txt");
-
-    output.write(toString().getBytes());
-    output.close();
+    Files.write(Paths.get(downloads_dir,"config.txt"), toString().getBytes());
   }
 
   public String toOriDate(String dateIn, String URLIn) {
@@ -110,6 +109,7 @@ public class Config {
             .collect(Collectors.joining()).split(":")[1]));
     return out;
   }
+
   @Override
   public String toString() {
     String out;

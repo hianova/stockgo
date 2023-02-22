@@ -1,11 +1,12 @@
 package hianova.stockgo;
 
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.script.ScriptEngineManager;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class BackTest {
 
@@ -15,13 +16,11 @@ public class BackTest {
   private BigInteger pos_point, neg_point;
 
   public BackTest(ArrayList<String>[] data_in, String file_in) throws Exception {
-    var input = new FileInputStream(file_in);
     var script = new ScriptEngineManager().getEngineByName("javascript");
     data = data_in;
 
     script.put("data_in", data);
-    mark = (ArrayList<Integer>) script.eval(new String(input.readAllBytes()));
-    input.close();
+    mark = (ArrayList<Integer>) script.eval(new String(Files.readAllBytes(Paths.get(file_in))));
   }
 
   public String expecVal(String time_in) {

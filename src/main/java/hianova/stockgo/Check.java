@@ -5,8 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,11 @@ import java.util.stream.IntStream;
 
 public class Check {
 
+  public String fileSeperator() {
+    var out = FileSystems.getDefault().getSeparator();
+    return out;
+  }
+
   public String URLToName(String URLIn) {
     var removePat = Pattern.compile("(\\.\\w+|@num|@date|\\?.+)");
     var tmp = removePat.matcher(URLIn).replaceAll("").split("/");
@@ -24,9 +30,8 @@ public class Check {
   }
 
   public String tag(String tagIn) throws Exception {
-    var out = new ObjectMapper().readTree(
-        new File(System.getProperty("user.dir") + File.separator + "parse_rule.json"))
-        .at("/" + tagIn).textValue();
+    var file = Paths.get(System.getProperty("user.dir"), "parse_rule.json").toFile();
+    var out = new ObjectMapper().readTree(file).at("/" + tagIn).textValue();
 
     if (out == null) {
       var tmp = tagIn.split("/");
@@ -79,12 +84,13 @@ public class Check {
     }
     list.forEach(nextList -> {
       try {
-        new Parse(downloadsDir() + nextList + "證券代號" + File.separator + "isin_C_public.txt",
+        new Parse(downloadsDir() + nextList + "證券代號" + fileSeperator() + "isin_C_public.txt",
             new ArrayList<>(List.of("有價證券代號及名稱"))).data()[0].forEach(
-              next -> { if (match.matcher(next).find()) {
-                out.add(next.split("　")[0]);
-              }
-            });
+                next -> {
+                  if (match.matcher(next).find()) {
+                    out.add(next.split("　")[0]);
+                  }
+                });
       } catch (Exception e) {
         System.out.println("number not exist");
       }
@@ -96,7 +102,7 @@ public class Check {
     var out = new ArrayList<String>();
     var match = Pattern.compile("^T[0-9]+\\w");
 
-    new Parse(downloadsDir() + "基金＿國際證券代號" + File.separator + "isin_C_public.txt",
+    new Parse(downloadsDir() + "基金＿國際證券代號" + fileSeperator() + "isin_C_public.txt",
         new ArrayList<>(List.of("有價證券代號及名稱"))).data()[0].forEach(next -> {
           if (match.matcher(next).find()) {
             out.add(next.split("　")[0]);
@@ -106,22 +112,19 @@ public class Check {
   }
 
   public String downloadsDir() {
-    var out = System.getProperty("user.dir") + File.separator + "downloads" + File.separator;
+    var out = System.getProperty("user.dir") + fileSeperator() + "downloads" + fileSeperator();
     return out;
   }
 
   public String strategyDir() {
-    var out = System.getProperty("user.dir") + File.separator + "strategy" + File.separator;
+    var out = System.getProperty("user.dir") + fileSeperator() + "strategy" + fileSeperator();
     return out;
   }
 
   public String UA() throws Exception {
-    var input = new FileInputStream(
-        System.getProperty("user.dir") + File.separator + "useragent.txt");
-    var UA = new ArrayList<>(List.of(new String(input.readAllBytes()).split("\n")));
-    var out = UA.get(new Random().nextInt(UA.size()));
-
-    input.close();
+    var path = Paths.get(System.getProperty("user.dir"), "useragent.txt");
+    var UA = new String(Files.readAllBytes(path)).split("\n");
+    var out = UA[new Random().nextInt(UA.length)];
     return out;
   }
 
@@ -178,7 +181,7 @@ public class Check {
 
   public HashMap<String, String> relay(String cmdIn) throws Exception {
     var out = new HashMap<String, String>();
-    var file = new ObjectMapper().readTree(new File(downloadsDir() + "relay.json"));
+    var file = new ObjectMapper().readTree(Paths.get(downloadsDir(), "relay.json").toFile());
     var cmd = cmdIn.split("-");
     var title = cmd[0].replace(".", "/").trim();
     var exist = file.has(title);

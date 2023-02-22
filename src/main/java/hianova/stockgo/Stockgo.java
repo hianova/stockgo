@@ -10,33 +10,40 @@ import java.util.stream.IntStream;
 
 public class Stockgo {
 
-  private Manager man;
-  private Selecter sel;
-  private IPFSLayer ipfs;
-  private ArrayList<String>[] data;
-  private static Pattern cmdPat;
+  private static Manager man;
+  private static Selecter sel;
+  private static IPFSLayer ipfs;
+  private static ArrayList<String>[] data;
+  private static final Pattern cmdPat;
 
-  public Stockgo() throws Exception {
-    man = new Manager();
-    ipfs = new IPFSLayer();
+  static {
+    try {
+      man = new Manager();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    try {
+      ipfs = new IPFSLayer();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     cmdPat = Pattern.compile("-\\w+( )*");
   }
 
   public static void main(String[] args) throws Exception {
     String cmd;
-    var go = new Stockgo();
     var input = new Scanner(System.in);
     var exitPat = Pattern.compile("exit");
 
     if (args.length > 0) {
       for (var tmp : args) {
-        go.manager("-A"+tmp);
+        manager("-A" + tmp);
       }
       input.close();
       return;
     }
-    go.manager("U");
-    go.homeLayout();
+    manager("U");
+    homeLayout();
     while (!exitPat.matcher((cmd = input.nextLine())).find()) {
       var match = cmdPat.matcher(cmd);
       if (!match.find()) {
@@ -45,56 +52,56 @@ public class Stockgo {
       }
       switch (match.group(0).replaceAll(" -", "")) {
         case "M" -> {
-          go.managerLayout();
+          managerLayout();
           while (!exitPat.matcher((cmd = input.nextLine())).find()) {
-            go.manager(cmd);
+            manager(cmd);
           }
         }
         case "S" -> {
-          go.selecterLayout();
+          selecterLayout();
           while (!exitPat.matcher((cmd = input.nextLine())).find()) {
-            go.selecter(cmd);
+            selecter(cmd);
           }
         }
         case "IPFS" -> {
-          go.ipfsLayout();
+          ipfsLayout();
           while (!exitPat.matcher((cmd = input.nextLine())).find()) {
-            go.IPFSLayer(cmd);
+            IPFSLayer(cmd);
           }
         }
         default -> out.println("command not exist");
       }
-      go.homeLayout();
+      homeLayout();
     }
     input.close();
   }
 
-  private void homeLayout() {
+  private static void homeLayout() {
     out.println("Select function:");
     out.println("                -M(manage config) -S(select data) -IPFS(IPFS dedicate)");
   }
 
-  private void managerLayout() {
+  private static void managerLayout() {
     out.println("Select \"manage\" function:");
     out.println("                           -A(add list) -U(update list) -D(del list)\n");
     out.println("                           -help(how to use)");
     out.println(man.listConfig());
   }
 
-  private void selecterLayout() {
+  private static void selecterLayout() {
     out.println("Select \"select\" function:");
     out.println("                           -D(select data) -E(export data) -T(back test data)");
     out.println("                           -view(quick view on data)");
     out.println("                           -help(how to use)");
   }
 
-  private void ipfsLayout() {
+  private static void ipfsLayout() {
     out.println("Select \"IPFS\" function:");
     out.println("                         -I(import list) -O(export list)");
     out.println("                         -help(how to use)");
   }
 
-  private void helpLayout(String layoutIn) {
+  private static void helpLayout(String layoutIn) {
     switch (layoutIn) {
       case "manager" -> {
         out.println("\n-M(manage config.txt) page command:");
@@ -118,10 +125,10 @@ public class Stockgo {
     }
   }
 
-  public void manager(String cmdIn) throws Exception {
+  public static void manager(String cmdIn) throws Exception {
     var match = cmdPat.matcher(cmdIn);
 
-    switch (match.find()?match.group().trim():"") {
+    switch (match.find() ? match.group().trim() : "") {
       case "-A" -> man.add(new ArrayList<>(List.of(cmdIn.replaceAll("-A( )*", "").split(","))));
       case "-U" -> man.update();
       case "-D" -> {
@@ -133,10 +140,10 @@ public class Stockgo {
     }
   }
 
-  public void IPFSLayer(String cmdIn) throws Exception {
+  public static void IPFSLayer(String cmdIn) throws Exception {
     var match = cmdPat.matcher(cmdIn);
 
-    switch (match.find()?match.group(0):"") {
+    switch (match.find() ? match.group(0) : "") {
       case "-I" -> {
         ipfs.add(cmdIn.replaceAll("-I( )*", ""));
         man.update();
@@ -149,13 +156,13 @@ public class Stockgo {
     }
   }
 
-  public void selecter(String cmdIn) throws Exception {
+  public static void selecter(String cmdIn) throws Exception {
     var match = cmdPat.matcher(cmdIn);
 
-    switch (match.find()?match.group(0):"") {
+    switch (match.find() ? match.group(0) : "") {
       case "-D" -> {
         var tmp = new ArrayList<>(List.of(cmdIn.replaceAll("-D( )*", "").split(",")));
-        sel = new Selecter(tmp );
+        sel = new Selecter(tmp);
         data = sel.select();
       }
       case "-E" -> {

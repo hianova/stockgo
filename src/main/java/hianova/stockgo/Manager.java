@@ -1,6 +1,7 @@
 package hianova.stockgo;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
@@ -59,10 +60,10 @@ public class Manager extends Config {
   }
 
   public void download(String URLIn) throws Exception {
-    var dir = downloads_dir + label_folder.get(label_URL.indexOf(URLIn)) + File.separator;
+    var dir = downloads_dir + label_folder.get(label_URL.indexOf(URLIn)) + seperator;
     var postPat = Pattern.compile("@Post:");
 
-    new File(dir).mkdir();
+    Files.createDirectory(Paths.get(dir));
     streamNum(URLIn, "").forEach(nextNum -> {
       try {
         streamDate(URLIn, "").forEach(nextDate -> {

@@ -2,13 +2,13 @@ package hianova.stockgo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
-
-import javax.cache.Caching;
 
 public class Parse {
 
@@ -18,24 +18,20 @@ public class Parse {
   private boolean assertTag;
 
   public Parse(String pathIn, ArrayList<String> reqIn) throws Exception {
-    var file = new String();
+    String file;
     var check = new Check();
-    var cacheManager = Caching.getCachingProvider().getCacheManager();
-    var cache = cacheManager.getCache("file" );
+    
     hd = new ArrayList<>();
     bd = new ArrayList<>();
     req = new ArrayList<>();
     req_tag = new ArrayList[reqIn.size()];
 
-    if (cache.containsKey(pathIn)) {
-      file = cache.get(pathIn).toString();
-    } else {
-      var input = new FileInputStream(pathIn);
-      file = new String(input.readAllBytes(), "UTF-8");
-      cache.put(pathIn, file);
-      input.close();
-    }
-    cacheManager.close();
+
+    
+      var path = Paths.get(pathIn);
+      file = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+
+      
     if (check.isHTML(file)) {
       var tmp = check.cleanHTML(file);
       var tag = tmp.select("tag").text();
@@ -77,7 +73,7 @@ public class Parse {
     var out = new ArrayList[req.size()];
 
     IntStream.range(0, out.length).forEach(
-      next -> out[next] = new ArrayList<>());
+        next -> out[next] = new ArrayList<>());
     for (var num = 0; num < bd.size(); num += hd.size()) {
       var pass = !assertTag;
       var line = new ArrayList<>();
@@ -90,7 +86,7 @@ public class Parse {
       }
       if (pass) {
         IntStream.range(0, out.length).forEach(
-          next -> out[next].add(line.get(next)));
+            next -> out[next].add(line.get(next)));
       }
     }
     return out;

@@ -6,11 +6,8 @@ import io.ipfs.api.IPFS;
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper;
 import io.ipfs.cid.Cid;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.Arrays;
-import java.util.Objects;
+import java.nio.file.Files;
+import java.nio.file.Paths; 
 
 public class IPFSLayer extends Config {
 
@@ -33,12 +30,12 @@ public class IPFSLayer extends Config {
     config.put("tag", label_tag.get(numIn));
     config.put("status", label_status.get(numIn));
 
-    Arrays
-        .stream(Objects.requireNonNull(new File(downloads_dir + label_folder.get(numIn) + File.separator).listFiles()))
-        .forEach(next -> {
-          try (var input = new FileInputStream(next)) {
-            var tmp = ipfs.add(new ByteArrayWrapper(input.readAllBytes()));
-            file.putObject(next.getName().split("\\.")[0])
+    Files.walk(Paths.get(downloads_dir, label_folder.get(numIn))).forEach(
+        next -> {
+          try {
+            // var input = new FileInputStream(next);
+            var tmp = ipfs.add(new ByteArrayWrapper(Files.readAllBytes(next)));
+            file.putObject(next.getFileName().toString().split("\\.")[0])
                 .put("/", tmp.get(0).toString().split("-")[0]);
           } catch (Exception e) {
             System.out.println("IPFS can't upload " + e);
@@ -51,14 +48,13 @@ public class IPFSLayer extends Config {
 
   public void add(String CIDIn) throws Exception {
     var json = (ObjectNode) new ObjectMapper().readTree(ipfs.dag.get(Cid.decode(CIDIn)));
-    var dir = downloads_dir + json.at("/config/title").textValue() + File.separator;
+    var dir = downloads_dir + json.at("/config/title").textValue() + seperator;
 
     json.at("/file").fields().forEachRemaining(next -> new Thread(() -> {
       try {
-        new File(dir).mkdir();
-        var output = new FileOutputStream(dir + next.getKey() + ".txt");
-        output.write(ipfs.get(Cid.decode(next.getValue().get("/").textValue())));
-        output.close();
+        var path = Paths.get(dir);
+        Files.createDirectories(path);
+        Files.write(path, ipfs.get(Cid.decode(next.getValue().get("/").textValue())));
       } catch (Exception e) {
         System.out.println("IPFS gone wrong " + e);
       }

@@ -1,7 +1,7 @@
 package hianova.stockgo;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -22,21 +22,19 @@ public class Selecter extends Config {
     req = new ArrayList[size];
 
     IntStream.range(0, size).forEach(nextURL -> {
+      var cmd = cmdIn.get(nextURL).split("-");
+      var requestPat = Pattern.compile("request");
+      var withDatePat = Pattern.compile("withdate");
       try {
         var relay = check.relay(cmdIn.get(nextURL));
-        URL[nextURL] = relay.get("URL");
+        var tmp = relay.get("URL");
+        URL[nextURL] = tmp.isBlank() ? label_URL.get(label_title.indexOf(cmd[0].trim())) : tmp;
         req[nextURL] = new ArrayList<>(
             Arrays.asList(relay.get("requset").split("\\.")));
         num[nextURL] = relay.get("num");
         date[nextURL] = relay.get("date");
       } catch (Exception e) {
         System.out.print("relay not found " + e);
-      }
-      var cmd = cmdIn.get(nextURL).split("-");
-      var requestPat = Pattern.compile("request");
-      var withDatePat = Pattern.compile("withdate");
-      if (URL[nextURL].isBlank()) {
-        URL[nextURL] = label_URL.get(label_title.indexOf(cmd[0].trim()));
       }
       for (var count = 1; count < cmd.length; count++) {
         var tmp = cmd[count].trim();
@@ -109,19 +107,18 @@ public class Selecter extends Config {
 
   public void export(String pathIn, boolean assertHeadIn) throws Exception {
     var maxNum = 0;
-    var path = pathIn.isBlank() ? downloads_dir + "export.csv" : pathIn;
-    var output = new FileOutputStream(path);
+    var path = pathIn.isBlank() ? Paths.get(downloads_dir, "export.csv") : Paths.get(pathIn);
 
-    new File(path).createNewFile();
+    Files.createFile(path);
     if (assertHeadIn) {
       IntStream.range(0, req.length)
           .forEach(nextReq -> IntStream.range(0, req[nextReq].size()).forEach(nextNum -> {
             var mark = nextReq == req.length - 1 && nextNum == req[nextReq].size() - 1 ? "\n" : ",";
             try {
               if (assert_date && datePat.matcher(URL[nextReq]).find() && nextNum == 0) {
-                output.write(("\"日期\",").getBytes());
+                Files.write(path, ("\"日期\",").getBytes());
               }
-              output.write(("\"" + req[nextReq].get(nextNum) + "\"" + mark).getBytes());
+              Files.write(path, ("\"" + req[nextReq].get(nextNum) + "\"" + mark).getBytes());
             } catch (Exception e) {
               System.out.println("head can't export " + e);
             }
@@ -136,12 +133,11 @@ public class Selecter extends Config {
           try {
             String tmp = nextNum >= data[nextData].size() ? ""
                 : data[nextData].get(nextNum).isEmpty() ? "null" : data[nextData].get(nextNum);
-            output.write(("\"" + tmp + "\"" + mark).getBytes());
+            Files.write(path, ("\"" + tmp + "\"" + mark).getBytes());
           } catch (Exception e) {
             System.out.println("data can't export " + e);
           }
         }));
-    output.close();
   }
 
   public String backTest(String pathIn) throws Exception {
