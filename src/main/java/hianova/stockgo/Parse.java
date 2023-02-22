@@ -25,13 +25,8 @@ public class Parse {
     bd = new ArrayList<>();
     req = new ArrayList<>();
     req_tag = new ArrayList[reqIn.size()];
-
-
-    
       var path = Paths.get(pathIn);
       file = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-
-      
     if (check.isHTML(file)) {
       var tmp = check.cleanHTML(file);
       var tag = tmp.select("tag").text();

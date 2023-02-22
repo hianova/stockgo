@@ -64,7 +64,6 @@ public class Crawl {
     }
     Files.createFile(filePath);
     Files.write(filePath, file.getBytes(StandardCharsets.UTF_8));
-
     trans.disconnect();
     System.out.println(path + " added");
   }
