@@ -36,9 +36,7 @@ public class Stockgo {
     var exitPat = Pattern.compile("exit");
 
     if (args.length > 0) {
-      for (var tmp : args) {
-        manager("-A" + tmp);
-      }
+      manager("add " + args[0]);
       input.close();
       return;
     }
@@ -83,22 +81,22 @@ public class Stockgo {
 
   private static void managerLayout() {
     out.println("Select \"manage\" function:");
-    out.println("                           -A(add list) -U(update list) -D(del list)\n");
-    out.println("                           -help(how to use)");
+    out.println("                           add(add list) update(update list) delete(del list)\n");
+    out.println("                           --help(how to use)");
     out.println(man.listConfig());
   }
 
   private static void selecterLayout() {
     out.println("Select \"select\" function:");
-    out.println("                           -D(select data) -E(export data) -T(back test data)");
-    out.println("                           -view(quick view on data)");
-    out.println("                           -help(how to use)");
+    out.println("                           select(select data) export(export data) test(back test data)");
+    out.println("                           view(quick view on data)");
+    out.println("                           --help(how to use)");
   }
 
   private static void ipfsLayout() {
     out.println("Select \"IPFS\" function:");
-    out.println("                         -I(import list) -O(export list)");
-    out.println("                         -help(how to use)");
+    out.println("                         import(import list) export(export list)");
+    out.println("                         --help(how to use)");
   }
 
   private static void helpLayout(String layoutIn) {
@@ -129,13 +127,13 @@ public class Stockgo {
     var match = cmdPat.matcher(cmdIn);
 
     switch (match.find() ? match.group().trim() : "") {
-      case "-A" -> man.add(new ArrayList<>(List.of(cmdIn.replaceAll("-A( )*", "").split(","))));
-      case "-U" -> man.update();
-      case "-D" -> {
-        man.delete(Integer.parseInt(cmdIn.replaceAll("-D( )*", "")));
+      case "add" -> man.add(new ArrayList<>(List.of(cmdIn.replaceAll("add( )+", "").split(","))));
+      case "update" -> man.update();
+      case "delete" -> {
+        man.delete(Integer.parseInt(cmdIn.replaceAll("delete( )+", "")));
         managerLayout();
       }
-      case "-help" -> helpLayout("manager");
+      case "--help" -> helpLayout("manager");
       default -> out.println("command not found");
     }
   }
@@ -144,14 +142,14 @@ public class Stockgo {
     var match = cmdPat.matcher(cmdIn);
 
     switch (match.find() ? match.group(0) : "") {
-      case "-I" -> {
-        ipfs.add(cmdIn.replaceAll("-I( )*", ""));
+      case "import" -> {
+        ipfs.add(cmdIn.replaceAll("import( )+", ""));
         man.update();
         out.println("file imported");
         managerLayout();
       }
-      case "-O" -> out.println(ipfs.share(Integer.parseInt(cmdIn.replaceAll("-O( )*", ""))));
-      case "-help" -> helpLayout("ipfsLayer");
+      case "export" -> out.println(ipfs.share(Integer.parseInt(cmdIn.replaceAll("export( )+", ""))));
+      case "--help" -> helpLayout("ipfsLayer");
       default -> out.println("command not found");
     }
   }
@@ -160,29 +158,29 @@ public class Stockgo {
     var match = cmdPat.matcher(cmdIn);
 
     switch (match.find() ? match.group(0) : "") {
-      case "-D" -> {
-        var tmp = new ArrayList<>(List.of(cmdIn.replaceAll("-D( )*", "").split(",")));
+      case "select" -> {
+        var tmp = new ArrayList<>(List.of(cmdIn.replaceAll("select( )+", "").split(",")));
         sel = new Selecter(tmp);
         data = sel.select();
       }
-      case "-E" -> {
+      case "export" -> {
         if (sel == null) {
-          out.println("please select data(-D) first");
+          out.println("please select data(select) first");
           break;
         }
-        sel.export(cmdIn.replaceAll("-E( )*", ""), true);
+        sel.export(cmdIn.replaceAll("export( )+", ""), true);
       }
-      case "-T" -> {
+      case "test" -> {
         if (sel == null) {
-          out.println("please select data(-D) first");
+          out.println("please select data(select) first");
           break;
         }
         // out.println(sel.back_test(cmd_in.replace("-T ", "")));
         out.println("remain develop");
       }
-      case "-view" -> {
+      case "view" -> {
         if (sel == null) {
-          out.println("please select data(-D) first");
+          out.println("please select data(select) first");
           break;
         }
         var req = sel.getRequests();
@@ -193,7 +191,7 @@ public class Stockgo {
         IntStream.range(0, data.length).forEach(
             next -> out.println(data[next].subList(0, Math.min(data[next].size(), 10))));
       }
-      case "-syntax" -> helpLayout("selecter");
+      case "--help" -> helpLayout("selecter");
       default -> out.println("command not found");
     }
   }
