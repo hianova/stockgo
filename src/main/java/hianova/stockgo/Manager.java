@@ -4,83 +4,81 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Manager extends Config {
 
   public Manager() throws Exception {
   }
 
-  public void add(ArrayList<String> listIn) throws Exception {
-    if (listIn.size() != 5) {
-      System.out.println("Wrong syntax: " + listIn.size() + " != 5");
+  public void addConfig(HashMap<String, String> listIn) throws Exception {
+    if (CONFIG_TITLE.contains(listIn.get("title"))) {
+      System.out.println("Title exists");
       return;
     }
-    if (label_title.contains(listIn.get(0))) {
-      System.out.println("Title exists at " + label_title.indexOf(listIn.get(0)));
-      return;
-    }
-    label_title.add(listIn.get(0));
-    label_URL.add(listIn.get(1));
-    label_folder.add(listIn.get(2));
-    label_tag.add(listIn.get(3));
-    label_status.add(listIn.get(4));
-    download(listIn.get(1));
-    label_status.set(label_title.indexOf(listIn.get(0)), LocalDate.now().format(uni_date));
+    CONFIG_TITLE.add(listIn.get("title"));
+    CONFIG_URL.add(listIn.get("URL"));
+    CONFIG_FOLDER.add(listIn.get("title"));
+    CONFIG_LABEL.add(listIn.get("label"));
+    CONFIG_STATUS.add(listIn.get("status"));
+    download(listIn.get("URL"));
+    CONFIG_STATUS.set(CONFIG_STATUS.size(), LocalDate.now().format(UNI_DATE));
     syncConfig();
-    System.out.println(listIn.get(0) + " added");
+    System.out.println(listIn.get("title") + "added");
   }
 
-  public void delete(int numIn) throws Exception {
-    label_URL.remove(numIn);
-    label_title.remove(numIn);
-    label_folder.remove(numIn);
-    label_tag.remove(numIn);
-    label_status.remove(numIn);
+  public void deleteConfig(int numIn) throws Exception {
+    CONFIG_TITLE.remove(numIn);
+    CONFIG_URL.remove(numIn);
+    CONFIG_FOLDER.remove(numIn);
+    CONFIG_LABEL.remove(numIn);
+    CONFIG_STATUS.remove(numIn);
     syncConfig();
-    System.out.println(numIn + " line deleted");
+    System.out.println(numIn + " deleted");
   }
 
   public void update() {
-    IntStream.range(0, label_status.size()).forEach(next -> {
-      if (Period.between(LocalDate.parse(label_status.get(next), uni_date), LocalDate.now())
-          .getDays() > 1) {
+    IntStream.range(0, CONFIG_STATUS.size()).forEach(next -> {
+      if (Period.between(LocalDate.parse(CONFIG_STATUS.get(next), UNI_DATE),
+          LocalDate.now()).getDays() > 1) {
         try {
-          download(label_URL.get(next));
-          label_status.set(next, LocalDate.now().format(uni_date));
+          download(CONFIG_URL.get(next));
+          CONFIG_STATUS.set(next, LocalDate.now().format(UNI_DATE));
           syncConfig();
         } catch (Exception e) {
           System.out.println("Update has been suspended: " + e);
         }
       }
     });
-    System.out.println("Files are updated");
+    System.out.println("Files are up to update");
   }
 
-  public void download(String URLIn) throws Exception {
-    var dir = downloads_dir + label_folder.get(label_URL.indexOf(URLIn)) + seperator;
-    var postPat = Pattern.compile("@Post:");
+  public void download(String urlIn) throws Exception {
+    var dir = Paths.get("downloads", CONFIG_FOLDER.get(CONFIG_URL.indexOf(urlIn)));
+    var postRgx = Pattern.compile("@Post:");
 
-    Files.createDirectory(Paths.get(dir));
-    streamNum(URLIn, "").forEach(nextNum -> {
+    Files.createDirectory(dir);
+    streamNum(urlIn, "").forEach(nextNum -> {
       try {
-        streamDate(URLIn, "").forEach(nextDate -> {
+        streamDate(urlIn, "").forEach(nextDate -> {
           try {
-            var url = URLIn.replace("@date", toOriDate(
-                nextDate, URLIn))
-                .replace("@num", nextNum).split("@Post:");
+            var url = urlIn.replace("@date",
+                toOrigin(nextDate, urlIn)).replace("@num", nextNum).split("@Post:");
             var crawl = new Crawl(url[0]);
-            var path = dir + check.URLToName(url[0])
-                + (numPat.matcher(URLIn).find()? "_" + nextNum : "")
-                + (datePat.matcher(URLIn).find() ? "_" + nextDate : "") + ".txt";
-            if (postPat.matcher(URLIn).find()) {
+            var path = String.format("%s%s%s%s.txt", dir, LIB.URLToName(url[0]),
+                (NUM_RGX.matcher(urlIn).find() ? "_" + nextNum : ""),
+                (DATE_RGX.matcher(urlIn).find() ? "_" + nextDate : ""));
+            if (postRgx.matcher(urlIn).find()) {
               crawl.setPost(url[1]);
             }
             crawl.setPath(path);
             crawl.save();
-            Thread.sleep((long) (Math.random() * 5000));
+            Thread.sleep((long) (Math.random() * 5000));// be gentle
           } catch (Exception e) {
             System.out.println("Time iterator stopped: " + e);
           }
@@ -89,5 +87,22 @@ public class Manager extends Config {
         System.out.println("Number iterator stopped: " + e);
       }
     });
+  }
+
+  public void addRelay(String nameIn, HashMap<String, String> listIn) throws Exception {
+    var path = Paths.get("downloads", "relay.json");
+    var json = (ObjectNode) new ObjectMapper().readTree(path.toFile());
+    var tmp = json.putObject(nameIn);
+    listIn.entrySet().forEach(next -> {
+      tmp.put(next.getKey(), next.getValue());
+    });
+    Files.writeString(path, json.toPrettyString());
+  }
+
+  public void deleteRelay(String nameIn) throws Exception {
+    var path = Paths.get("downloads", "relay.json");
+    var json = (ObjectNode) new ObjectMapper().readTree(path.toFile());
+    json.remove(nameIn);
+    Files.writeString(path, json.toPrettyString());
   }
 }

@@ -1,41 +1,77 @@
 package hianova.stockgo;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import javax.script.ScriptEngineManager;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+
+import javax.script.ScriptEngineManager;
 
 public class BackTest {
 
-  private final ArrayList<String>[] data;
+  private ArrayList<String>[] data;
   private ArrayList<Integer> mark;
-  private double pos_odd, neg_odd;
-  private BigInteger pos_point, neg_point;
+  private int oddP, oddN, pointP, pointN;
 
-  public BackTest(ArrayList<String>[] data_in, String file_in) throws Exception {
-    var script = new ScriptEngineManager().getEngineByName("javascript");
-    data = data_in;
+  public BackTest(ArrayList<String>[] dataIn, String nameIn) throws Exception {
+    var file = Files.readString(Paths.get("strategy", nameIn + ".js"));
+    var js = new ScriptEngineManager().getEngineByName("jsvascript");
+    data = dataIn;
 
-    script.put("data_in", data);
-    mark = (ArrayList<Integer>) script.eval(new String(Files.readAllBytes(Paths.get(file_in))));
+    js.put("in", nameIn);
+    js.eval(file);
+    mark = (ArrayList<Integer>) js.get("out");
+    for (var count = 0; count < mark.size(); count += 2) {
+      var start = Integer.parseInt(data[0].get(mark.get(count)));
+      var end = Integer.parseInt(data[0].get(mark.get(count++)));
+      var sum = end - start;
+      if (sum > 0) {
+        oddP += 1;
+        pointP += sum;
+      } else {
+        oddN += 1;
+        pointN += sum;
+      }
+    }
   }
 
-  public String expecVal(String time_in) {
-    String out = "";
+  public String getWinRate() {
+    return String.valueOf(oddP / oddN + oddP);
+  }
 
+  public String getExpectValue() {
+    var sum = oddN + oddN;
+    var out = String.valueOf((pointP * oddP / sum) + (pointN * oddN / sum));
     return out;
   }
 
-  public HashMap<String, String> getStatistics() {
-    var out = new HashMap<String, String>();
-
-    out.put("pos_odd", String.valueOf(pos_odd));
-    out.put("neg_odd", String.valueOf(neg_odd));
-    out.put("pos_point", pos_point.toString());
-    out.put("neg_point", neg_point.toString());
-    return out;
+  public ArrayList<String>[] getData() {
+    return data;
   }
+
+  public ArrayList<Integer> getMark() {
+    return mark;
+  }
+
+  public double getOddP() {
+    return oddP;
+  }
+
+  public double getOddN() {
+    return oddN;
+  }
+
+  public int getPointP() {
+    return pointP;
+  }
+
+  public int getPointN() {
+    return pointN;
+  }
+
+  @Override
+  public String toString() {
+    return "BackTest [oddP=" + oddP + ", oddN=" + oddN +
+        ", pointP=" + pointP + ", pointN=" + pointN + "]";
+  }
+
 }

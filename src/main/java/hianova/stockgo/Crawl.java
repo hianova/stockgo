@@ -1,70 +1,78 @@
 package hianova.stockgo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.regex.Pattern;
- 
+import java.util.Random;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 public class Crawl {
 
-  private final Check check;
-  private final HttpURLConnection trans;
-  private final String tag;
-  private final String encode;
-  private String path;
+  private final Lib LIB;
+  private final String TAG;
+  private final String CODEC;
+  private final HttpURLConnection HTTP;
+  private Path path;
 
-  public Crawl(String URLIN) throws Exception {
-    check = new Check();
-    var URL = new URL(URLIN.replace("https", "http"));
-    trans = (HttpURLConnection) URL.openConnection();
-    tag = URL.getHost().replace(".", "_");
-    encode = check.tag(tag + "/encode");
-    path = check.downloadsDir() + check.URLToName(URL.toString()) + ".txt";
+  public Crawl(String urlIn) throws Exception {
+    String[] ua;
+    var uaPath = Paths.get("userAgent.txt");
+    var url = new URL(urlIn.replace("https", "http"));
+    LIB = new Lib();
+    TAG = url.getHost().replace(".", "_");
+    CODEC = LIB.tag(TAG + "/codec");
+    HTTP = (HttpURLConnection) url.openConnection();
+    path = Paths.get("downloads", LIB.URLToName(url.toString()) + ".txt");
 
-    trans.setRequestProperty("Origin", URL.toString());
-    trans.setRequestProperty("Referer", URL.toString());
-    trans.setRequestProperty("Host", URL.getHost());
-    trans.setRequestProperty("Accept", "*/*");
-    trans.setInstanceFollowRedirects(true);
-    trans.setRequestProperty("Connection", "keep-alive");
-    trans.setRequestProperty("User-Agent", check.UA());
-    trans.setRequestProperty("X-Requested-With", "XMLHttpRequest");
-    trans.setRequestProperty("Accept-Language", "zh-TW,zh-Hant;q=0.9");
-    trans.setRequestProperty("Content-Type",
-        "application/x-www-form-urlencoded; charset=" + encode);
+    if (Files.exists(uaPath)) {
+      ua = Files.readString(uaPath).split("\n");
+    } else {
+      ua = new String[] {
+          "Opera/9.64 (Windows NT 6.0; U; pl) Presto/2.1.1",
+          "Mozilla/1.22 (compatible; MSIE 10.0; Windows 3.1)",
+          "Mozilla/4.0(compatible; MSIE 7.0b; Windows NT 6.0)"
+      };
+    }
+    HTTP.setRequestProperty("Host", url.getHost());
+    HTTP.setRequestProperty("Accept", "*/*");
+    HTTP.setRequestProperty("Origin", url.toString());
+    HTTP.setInstanceFollowRedirects(true);
+    HTTP.setRequestProperty("Referer", url.toString());
+    HTTP.setRequestProperty("Connection", "keep-alive");
+    HTTP.setRequestProperty("X-Requested-With", "XMLHttpRequest");
+    HTTP.setRequestProperty("Accept-Language", "zh-TW,zh-Hant;q=0.9");
+    HTTP.setRequestProperty("User-Agent", ua[new Random().nextInt(ua.length)]);
+    HTTP.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=" + CODEC);
   }
 
   public void setPost(String formIn) throws Exception {
-    var removePat = Pattern.compile("\n");
-    var replacePat = Pattern.compile(" ");
-    trans.setDoOutput(true);
-    trans.setRequestMethod("POST");
-    trans.getOutputStream().write(removePat.matcher(
-        replacePat.matcher(formIn).replaceAll("")).replaceAll("&").getBytes());
+    HTTP.setDoOutput(true);
+    HTTP.setRequestMethod("POST");
+    HTTP.getOutputStream().write(formIn.getBytes());
   }
 
   public void setPath(String pathIn) {
-    path = pathIn;
+    path = Paths.get(pathIn);
   }
 
-  public void save() throws Exception {
-    var filePath = Paths.get(path);
-    var file = new String(trans.getInputStream().readAllBytes(), encode);
+  public String save() throws Exception {
+    var data = new String(HTTP.getInputStream().readAllBytes(), CODEC);
 
-    if (check.isHTML(file)) {
-      file = file + "<tag>" + tag + "</tag>";
-    } else if (check.isJSON(file)) {
-      var tmp = (ObjectNode) new ObjectMapper().readTree(file);
-      tmp.put("tag", tag);
-      file = tmp.toPrettyString();
+    if (LIB.isHTML(data)) {
+      data = String.format("%s<tag>%s</tag>", data, TAG);
+    } else if (LIB.isJSON(data)) {
+      var tmp = (ObjectNode) new ObjectMapper().readTree(data);
+      tmp.put("tag", TAG);
+      data = tmp.toPrettyString();
     }
-    Files.createFile(filePath);
-    Files.write(filePath, file.getBytes(StandardCharsets.UTF_8));
-    trans.disconnect();
+    HTTP.disconnect();
+    Files.createFile(path);
+    Files.writeString(path, data);
     System.out.println(path + " added");
+    return data;
   }
 }

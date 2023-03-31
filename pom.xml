@@ -45,6 +45,16 @@
       <groupId>com.github.ipfs</groupId>
       <artifactId>java-ipfs-http-client</artifactId>
       <version>v1.4.0</version>
+    </dependency> 
+    <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>31.1-jre</version>
+    </dependency>
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.2</version>
     </dependency>
   </dependencies>
 

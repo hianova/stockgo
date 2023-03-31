@@ -1,70 +1,107 @@
 package hianova.stockgo;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.ipfs.api.IPFS;
 import io.ipfs.api.NamedStreamable.ByteArrayWrapper;
 import io.ipfs.cid.Cid;
 
-import java.nio.file.Files;
-import java.nio.file.Paths; 
-
 public class IPFSLayer extends Config {
 
-  private final IPFS ipfs;
+  protected IPFS ipfs;
+  protected HashMap<String, String> user;
+  protected ObjectNode profile;
 
   public IPFSLayer() throws Exception {
     ipfs = new IPFS("/ip4/127.0.0.1/tcp/5001");
-    ipfs.refs.local();
+    var json = new ObjectMapper().readTree(Files.readAllBytes(
+        Paths.get("user_data.json"))).get("user");
+    json.fields().forEachRemaining(next -> {
+      user.put(next.getKey(), next.getValue().asText());
+    });
+    var tmp = ipfs.name.resolve(Cid.decode(user.get("ipns")));
+    profile = (ObjectNode) new ObjectMapper().readTree(tmp);
+  }
+
+  public String getProfile() throws Exception {
+     return profile.toPrettyString();
+  }
+
+  public void syncIpns() throws Exception {
+    var tmp = ipfs.add(new ByteArrayWrapper(profile.toPrettyString().getBytes()));
+    ipfs.name.publish(tmp.get(0).hash, Optional.of(user.get("key")));
+    user.put("ipns", tmp.get(0).hash.toString());
+    Files.writeString(Paths.get("user_data.json"), "UTF-8");
+  }
+
+  public void delete(String cidIn) throws Exception {
+    profile.remove("/stockgo/" + cidIn);
+    syncIpns();
   }
 
   public String share(int numIn) throws Exception {
     String out;
+    var map = new HashMap<String, String>();
     var json = new ObjectMapper().createObjectNode();
+    var files = json.putObject("files");
     var config = json.putObject("config");
-    var file = json.putObject("file");
 
-    config.put("title", label_title.get(numIn));
-    config.put("URL", label_URL.get(numIn));
-    config.put("folder", label_folder.get(numIn));
-    config.put("tag", label_tag.get(numIn));
-    config.put("status", label_status.get(numIn));
-
-    Files.walk(Paths.get(downloads_dir, label_folder.get(numIn))).forEach(
+    map.put("title", CONFIG_TITLE.get(numIn));
+    map.put("URL", CONFIG_URL.get(numIn));
+    map.put("label", CONFIG_LABEL.get(numIn));
+    map.put("status", CONFIG_STATUS.get(numIn));
+    map.entrySet().forEach(next -> {
+      config.put(next.getKey(), next.getValue());
+    });
+    Files.walk(Paths.get("downloads", map.get("title"))).forEach(
         next -> {
           try {
-            // var input = new FileInputStream(next);
             var tmp = ipfs.add(new ByteArrayWrapper(Files.readAllBytes(next)));
-            file.putObject(next.getFileName().toString().split("\\.")[0])
-                .put("/", tmp.get(0).toString().split("-")[0]);
+            files.put(next.toString(), tmp.get(0).hash.toString());
           } catch (Exception e) {
-            System.out.println("IPFS can't upload " + e);
+            System.out.println("ipfs can't add file");
           }
         });
-
-    out = ipfs.dag.put(json.toPrettyString().getBytes()).toString().split("-")[0];
+    out = ipfs.add(new ByteArrayWrapper(json.toPrettyString().getBytes()))
+        .get(0).hash.toString();
     return out;
   }
 
-  public void add(String CIDIn) throws Exception {
-    var json = (ObjectNode) new ObjectMapper().readTree(ipfs.dag.get(Cid.decode(CIDIn)));
-    var dir = downloads_dir + json.at("/config/title").textValue() + seperator;
+  public void add(String cidIn) throws Exception {
+    var map = new HashMap<String, String>();
+    var json = new ObjectMapper().readTree(ipfs.dag.get(Cid.decode(cidIn)));
+    var files = json.get("files");
+    var congig = json.get("config");
 
-    json.at("/file").fields().forEachRemaining(next -> new Thread(() -> {
-      try {
-        var path = Paths.get(dir);
-        Files.createDirectories(path);
-        Files.write(path, ipfs.get(Cid.decode(next.getValue().get("/").textValue())));
-      } catch (Exception e) {
-        System.out.println("IPFS gone wrong " + e);
-      }
-    }).start());
-
-    label_title.add(json.at("/config/title").textValue());
-    label_URL.add(json.at("/config/URL").textValue());
-    label_folder.add(json.at("/config/folder").textValue());
-    label_tag.add(json.at("/config/tag").textValue());
-    label_status.add(json.at("/config/status").textValue());
+    files.fields().forEachRemaining(next -> {
+      map.put(next.getKey(), next.getValue().asText());
+    });
+    congig.fields().forEachRemaining(next -> {
+      map.put(next.getKey(), next.getValue().asText());
+    });
+    CONFIG_TITLE.add(map.get("title"));
+    CONFIG_URL.add(map.get("URL"));
+    CONFIG_LABEL.add(map.get("label"));
+    CONFIG_STATUS.add(map.get("status"));
     syncConfig();
+  }
+
+  public void postArticle(String bodyIn, boolean privateIn) throws Exception {
+    var ele = new Element();
+    var map = new HashMap<String, String>();
+
+    if (privateIn) {
+      ele.chat();
+    }
+    map.put("body", bodyIn);
+    ele.stdUnit(map);
+    ele.post();
+    System.out.println("article post");
   }
 }

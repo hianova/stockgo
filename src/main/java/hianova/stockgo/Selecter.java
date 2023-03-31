@@ -1,64 +1,73 @@
 package hianova.stockgo;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.opencsv.CSVWriter;
 
 public class Selecter extends Config {
 
-  private final String[] URL, num, date;
-  private final ArrayList<String>[] req, data;
-  private boolean assert_date;
+  private final String[] URL, NUM, DATE;
+  private final ArrayList<String>[] REQ, DATA;
+  private boolean checkDate;
 
   public Selecter(ArrayList<String> cmdIn) throws Exception {
+    var sum = 0;
     var size = cmdIn.size();
-    assert_date = true;
+    var allRgx = Pattern.compile("^ALL$");
     URL = new String[size];
-    num = new String[size];
-    date = new String[size];
-    req = new ArrayList[size];
+    NUM = new String[size];
+    DATE = new String[size];
+    REQ = new ArrayList[size];
 
-    IntStream.range(0, size).forEach(nextURL -> {
-      var cmd = cmdIn.get(nextURL).split("-");
-      var requestPat = Pattern.compile("request");
-      var withDatePat = Pattern.compile("withdate");
+    IntStream.range(0, size).forEach(nextCmd -> {
       try {
-        var relay = check.relay(cmdIn.get(nextURL));
-        var tmp = relay.get("URL");
-        URL[nextURL] = tmp.isBlank() ? label_URL.get(label_title.indexOf(cmd[0].trim())) : tmp;
-        req[nextURL] = new ArrayList<>(
-            Arrays.asList(relay.get("requset").split("\\.")));
-        num[nextURL] = relay.get("num");
-        date[nextURL] = relay.get("date");
+        var cmd = Arrays.stream(cmdIn.get(nextCmd).split("-"))
+            .map(String::trim).collect(Collectors.toList());
+        var map = relay(cmd.get(0));
+
+        if (map.get("URL").isEmpty()) {
+          map.put("URL", cmd.get(0));
+        }
+        IntStream.range(1, cmd.size()).forEach(next -> {
+          var tmp = cmd.get(next).split("=");
+          map.put(tmp[0], tmp[1]);
+        });
+        if (map.get("withdate").contains("fales")) {
+          checkDate = false;
+        } else {
+          checkDate = true;
+        }
+        URL[nextCmd] = map.get("URL");
+        REQ[nextCmd] = new ArrayList<>(
+            Arrays.asList(map.get("request").split("\\.")));
+        DATE[nextCmd] = map.get("date");
+        NUM[nextCmd] = map.get("num");
       } catch (Exception e) {
-        System.out.print("relay not found " + e);
-      }
-      for (var count = 1; count < cmd.length; count++) {
-        var tmp = cmd[count].trim();
-        if (withDatePat.matcher(tmp).find() && tmp.replace("withdate=", "") == "false") {
-          assert_date = false;
-        }
-        if (requestPat.matcher(tmp).find()) {
-          req[nextURL] = new ArrayList<>(Arrays.asList(
-              tmp.replace("request=", "").split("\\.")));
-        }
-        if (datePat.matcher(tmp).find()) {
-          date[nextURL] = tmp.replace("date=", "");
-        }
-        if (numPat.matcher(tmp).find()) {
-          num[nextURL] = tmp.replace("num=", "");
-        }
+        System.out.println("relay not found");
       }
     });
-    var sum = IntStream.range(0, req.length)
-        .map(next -> (assert_date && datePat.matcher(URL[next]).find())
-            ? req[next].size() + 1
-            : req[next].size())
-        .sum();
-    data = new ArrayList[sum];
+    for (var count = 0; count < REQ.length; count++) {
+      if (allRgx.matcher(REQ[count].get(0)).find()) {
+        try {
+          var tmp = Files.readString(Paths.get("downloads",
+              CONFIG_FOLDER.get(CONFIG_URL.indexOf(URL[count])), "index.csv"));
+          var index = new ArrayList<>(Arrays.asList(tmp.split(",")));
+          REQ[count] = index;
+        } catch (IOException e) {
+          System.out.println("index not found: ALL command not available");
+        }
+      }
+      sum += REQ[count].size() + (checkDate & DATE[count].isEmpty() ? 1 : 0);
+    }
+    DATA = new ArrayList[sum];
   }
 
   public ArrayList<String>[] select() throws Exception {
@@ -68,28 +77,41 @@ public class Selecter extends Config {
     IntStream.range(0, URL.length).forEach(nextURL -> {
       threads[nextURL] = new Thread(() -> {
         try {
-          streamNum(URL[nextURL], num[nextURL]).forEach(
-              nextnum -> streamDate(URL[nextURL], date[nextURL]).forEach(nextdate -> {
+          streamNum(URL[nextURL], NUM[nextURL])
+              .forEach(nextNum -> streamDate(URL[nextURL], DATE[nextURL]).forEach(nextDate -> {
                 try {
-                  var path = downloads_dir + label_folder.get(label_URL.indexOf(
-                      URL[nextURL]))
-                      + System.getProperty("file.separator") + check.URLToName(
-                          URL[nextURL].split("@Post:")[0])
-                      + (numPat.matcher(URL[nextURL]).find() ? "_" + nextnum : "")
-                      + (datePat.matcher(URL[nextURL]).find() ? "_" + nextdate : "") + ".txt";
-                  var tmp = new Parse(path, req[nextURL]).data();
-                  if (assert_date && datePat.matcher(URL[nextURL]).find()) {
-                    data[nextURL] = new ArrayList<>();
-                    IntStream.range(0, tmp[0].size())
-                        .forEach(next -> data[nextURL].add(nextdate));
-                    IntStream.range(0, req[nextURL].size())
-                        .forEach(next -> data[nextURL + next + 1] = tmp[next]);
-                  } else {
-                    IntStream.range(0, req[nextURL].size())
-                        .forEach(next -> data[nextURL + next] = tmp[next]);
-                  }
+                  var que = new ArrayList<String>();
+                  var index = new ArrayList<Integer>();
+                  var dir = Paths.get("downloads", CONFIG_FOLDER.get(CONFIG_URL.indexOf(URL[nextURL])));
+                  var path = String.format("%s%s%s%s.txt", dir,
+                      LIB.URLToName(URL[nextURL].split("@Post:")[0]),
+                      (NUM_RGX.matcher(URL[nextURL]).find() ? "_" + nextNum : ""),
+                      (DATE_RGX.matcher(URL[nextURL]).find() ? "_" + nextDate : ""));
+                  IntStream.range(0, REQ[nextURL].size()).forEach(next -> {
+                    var tmp = getCache(String.format("%s-%s", path, REQ[nextURL].get(next)));
+                    if (tmp == null) {
+                      index.add(next);
+                      que.add(REQ[nextURL].get(next));
+                    } else {
+                      if (checkDate & DATE[nextURL].isEmpty()) {
+                        DATA[nextURL + next + 1] = tmp;
+                      } else {
+                        DATA[nextURL + next] = tmp;
+                      }
+                    }
+                  });
+                  var parse = new Parse(path, que).data();
+                  IntStream.range(0, index.size()).forEach(next -> {
+                    DATA[nextURL + index.get(next)] = parse[next];
+                    setCache(String.format("%s-%s", path, REQ[nextURL].get(index.get(next))), parse[next]);
+                    if (checkDate & DATE[nextURL].isEmpty()) {
+                      DATA[nextURL + index.get(next) + 1] = parse[next];
+                    } else {
+                      DATA[nextURL + index.get(next)] = parse[next];
+                    }
+                  });
                 } catch (Exception e) {
-                  System.out.println("can't get data " + e);
+                  System.out.println("can't parse data " + e);
                 }
               }));
         } catch (Exception e) {
@@ -101,54 +123,53 @@ public class Selecter extends Config {
     for (var tmp : threads) {
       tmp.join();
     }
-    out = data;
+    out = DATA;
     return out;
   }
 
   public void export(String pathIn, boolean assertHeadIn) throws Exception {
-    var maxNum = 0;
-    var path = pathIn.isBlank() ? Paths.get(downloads_dir, "export.csv") : Paths.get(pathIn);
+    var checkDone = false;
+    var size = Arrays.stream(REQ).mapToInt(ArrayList::size).sum();
+    var path = pathIn.isBlank() ? Paths.get("downloads", "export.csv") : Paths.get(pathIn);
 
     Files.createFile(path);
-    if (assertHeadIn) {
-      IntStream.range(0, req.length)
-          .forEach(nextReq -> IntStream.range(0, req[nextReq].size()).forEach(nextNum -> {
-            var mark = nextReq == req.length - 1 && nextNum == req[nextReq].size() - 1 ? "\n" : ",";
-            try {
-              if (assert_date && datePat.matcher(URL[nextReq]).find() && nextNum == 0) {
-                Files.write(path, ("\"日期\",").getBytes());
-              }
-              Files.write(path, ("\"" + req[nextReq].get(nextNum) + "\"" + mark).getBytes());
-            } catch (Exception e) {
-              System.out.println("head can't export " + e);
+    try (var file = new CSVWriter(new FileWriter(path.toFile()));) {
+      var buff = new String[size];
+      for (var reqNum = 0; reqNum < REQ.length; reqNum++) {
+        if (checkDate & DATE[reqNum].isEmpty()) {
+          REQ[reqNum].add(0, "pathIn");
+        }
+        for (var cell = 0; cell < REQ[reqNum].size(); cell++) {
+          buff[reqNum + cell] = REQ[reqNum].get(cell);
+        }
+      }
+      file.writeNext(buff);
+      while (checkDone) {
+        for (var dataNum = 0; dataNum < DATA.length; dataNum++) {
+          for (var cell = 0; cell < DATA[dataNum].size(); cell++) {
+            var tmp = "";
+            if (cell > DATA[dataNum].size()) {
+              checkDone = false;
+            } else {
+              DATA[dataNum].get(cell);
+              checkDone = true;
             }
-          }));
-    }
-    for (var tmp : data) {
-      maxNum = Math.max(maxNum, tmp.size());
-    }
-    IntStream.range(0, maxNum)
-        .forEach(nextNum -> IntStream.range(0, data.length).forEach(nextData -> {
-          var mark = nextData == data.length - 1 ? "\n" : ",";
-          try {
-            String tmp = nextNum >= data[nextData].size() ? ""
-                : data[nextData].get(nextNum).isEmpty() ? "null" : data[nextData].get(nextNum);
-            Files.write(path, ("\"" + tmp + "\"" + mark).getBytes());
-          } catch (Exception e) {
-            System.out.println("data can't export " + e);
+            buff[dataNum + cell] = tmp;
           }
-        }));
+        }
+        file.writeNext(buff);
+      }
+    }
   }
 
-  public String backTest(String pathIn) throws Exception {
-    var tmp = new BackTest(data, pathIn);
-    String out = "";
-    // out = tmp.getExpecVal();
+  public String backTest(String nameIn) throws Exception {
+    var tmp = new BackTest(DATA, nameIn);
+    var out = String.format("WinRate: %s\nExpectValue: %s\n%s",
+        tmp.getWinRate(), tmp.getExpectValue(), tmp.toString());
     return out;
   }
 
   public ArrayList<String>[] getRequests() {
-    var out = req;
-    return out;
+    return REQ;
   }
 }

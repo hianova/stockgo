@@ -1,88 +1,125 @@
 package hianova.stockgo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.nio.charset.StandardCharsets;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import javax.script.ScriptEngineManager;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.CSVReader;
 
 public class Parse {
 
-  private final ArrayList<String> hd, bd;
-  private final ArrayList<Integer> req;
-  private final ArrayList<String>[] req_tag;
-  private boolean assertTag;
+  private final ArrayList<String> HD, BD, OPT;
+  private final ArrayList<Integer> REQ;
+  private final ArrayList<Pattern> TAG;
+  private boolean checkTag, checkOpt;
 
   public Parse(String pathIn, ArrayList<String> reqIn) throws Exception {
-    String file;
-    var check = new Check();
-    
-    hd = new ArrayList<>();
-    bd = new ArrayList<>();
-    req = new ArrayList<>();
-    req_tag = new ArrayList[reqIn.size()];
-      var path = Paths.get(pathIn);
-      file = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-    if (check.isHTML(file)) {
-      var tmp = check.cleanHTML(file);
-      var tag = tmp.select("tag").text();
-      hd.addAll(tmp.select(check.tag(tag + "/head/HTML")).first().children().eachText());
-      tmp.select(check.tag(tag + "/body/HTML"))
-          .forEach(next -> bd.addAll(next.children().eachText()));
-    } else if (check.isJSON(file)) {
-      var tmp = new ObjectMapper().readTree(file);
-      var tag = tmp.at("tag").textValue();
-      var hdTmp = tmp.at(check.tag(tag + "/head/JSON"));
-      var bdTmp = tmp.at(check.tag(tag + "/body/JSON"));
-      IntStream.range(0, hdTmp.size())
-          .forEach(next -> hd.add(hdTmp.get(next).textValue()));
-      IntStream.range(0, bdTmp.size()).forEach(
-          nextRow -> IntStream.range(0, bdTmp.get(nextRow).size())
-              .forEach(nextCell -> bd.add(bdTmp.get(nextRow).get(nextCell).textValue())));
+    var lib = new Lib();
+    var optRgx = Pattern.compile("!");
+    var tagRgx = Pattern.compile("#");
+    var file = Files.readString(Paths.get(pathIn));
+    OPT = new ArrayList<>();
+    HD = new ArrayList<>();
+    BD = new ArrayList<>();
+    REQ = new ArrayList<>();
+    TAG = new ArrayList<>();
+
+    if (lib.isHTML(file)) {
+      var html = lib.cleanHTML(file);
+      var tag = html.select("tag").text();
+      var hdTmp = html.select(lib.tag(tag + "/head/HTML"));
+      var bdTmp = html.select(lib.tag(tag + "/body/HTML"));
+      HD.addAll(hdTmp.first().children().eachText());
+      bdTmp.forEach(next -> BD.addAll(next.children().eachText()));
+    } else if (lib.isJSON(file)) {
+      var json = new ObjectMapper().readTree(file);
+      var tag = json.at("tag").textValue();
+      var hdTmp = json.at(lib.tag(tag + "/head/JSON"));
+      var bdTmp = json.at(lib.tag(tag + "/body/JSON"));
+      hdTmp.forEach(node -> HD.add(node.textValue()));
+      bdTmp.forEach(row -> row.forEach(cell -> BD.add(cell.textValue())));
     } else {
-      var removePat = Pattern.compile("\" ");
-      var tmp = removePat.matcher(file).replaceAll("").split("\n");
-      hd.addAll(List.of(tmp[0].split(",")));
-      IntStream.range(1, tmp.length).forEach(
-          next -> bd.addAll(List.of(tmp[next].split(","))));
-    }
-    var tagPat = Pattern.compile("#\\w+");
-    IntStream.range(0, reqIn.size()).forEach(nextReq -> {
-      var match = tagPat.matcher(reqIn.get(nextReq));
-      if (match.find()) {
-        assertTag = true;
-        req_tag[nextReq] = new ArrayList<>();
-        IntStream.range(0, match.groupCount()).forEach(next -> {
-          req_tag[nextReq].add(match.group(next).replace("#", ""));
-        });
+      try (var csv = new CSVReader(new StringReader(file))) {
+        var iter = csv.iterator();
+        for (var tmp : iter.next()) {
+          HD.add(tmp);
+        }
+        for (var row = iter.next(); iter.hasNext(); row = iter.next()) {
+          for (var cell : row) {
+            BD.add(cell);
+          }
+        }
       }
-      req.add(hd.indexOf(reqIn.get(nextReq).split("#")[0]));
+    }
+    reqIn.forEach(next -> {
+      var reqTmp = next;
+      if (optRgx.matcher(reqTmp).find()) {
+        var tmp = reqTmp.split("!");
+        OPT.add(tmp[0]);
+        reqTmp = tmp[1];
+        checkOpt = true;
+      } else {
+        OPT.add("");
+      }
+      if (tagRgx.matcher(reqTmp).find()) {
+        var tmp = reqTmp.split("#");
+        var rgx = tmp[1];
+        reqTmp = tmp[0];
+        checkTag = true;
+        for (var count = 2; count < tmp.length; count++) {
+          rgx = String.format("%s|%s", rgx, tmp[count]);
+        }
+        TAG.add(Pattern.compile(rgx));
+      } else {
+        TAG.add(Pattern.compile(""));
+      }
+      REQ.add(HD.indexOf(reqTmp));
     });
   }
 
   public ArrayList<String>[] data() {
-    var out = new ArrayList[req.size()];
+    ArrayList<String>[] out = new ArrayList[REQ.size()];
 
-    IntStream.range(0, out.length).forEach(
-        next -> out[next] = new ArrayList<>());
-    for (var num = 0; num < bd.size(); num += hd.size()) {
-      var pass = !assertTag;
-      var line = new ArrayList<>();
-      for (var line_num = 0; line_num < req.size(); line_num++) {
-        var tmp = bd.get(num + req.get(line_num)).isEmpty() ? "null" : bd.get(num + req.get(line_num));
-        line.add(tmp);
-        if (assertTag && !pass) {
-          pass = req_tag[line_num].stream().anyMatch(tmp::equals);
+    Arrays.setAll(out, i -> new ArrayList<>());
+    for (var row = 0; row < (BD.size() / HD.size()); row++) {
+      var pass = !checkTag;
+      var line = new ArrayList<String>();
+      for (var cell = 0; cell < HD.size(); cell++) {
+        var tmp = BD.stream().skip(row * HD.size() + REQ.get(cell)).limit(1).findFirst().orElse("null");
+        line.add(tmp.isBlank() ? "null" : tmp);
+        if (checkTag & !pass & TAG.get(cell).matcher(tmp).find()) {
+          pass = true;
         }
       }
       if (pass) {
         IntStream.range(0, out.length).forEach(
             next -> out[next].add(line.get(next)));
       }
+    }
+    if (checkOpt) {
+      IntStream.range(0, OPT.size()).forEach(next -> {
+        if (out[next].isEmpty()) {
+          return;
+        }
+        try {
+          var script = new ScriptEngineManager().getEngineByName("javascipt");
+          var tmp = out[next].stream().map(Integer::parseInt).collect(Collectors.toList());
+          script.put("x", tmp);
+          script.put("y", "");
+          script.eval(String.format("y= x.map(num =>%s);", OPT.get(next)));
+          out[next] = (ArrayList<String>) script.get("y");
+        } catch (Exception e) {
+          System.out.println("operator cant apply");
+        }
+      });
     }
     return out;
   }

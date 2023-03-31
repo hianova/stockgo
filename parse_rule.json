@@ -8,7 +8,7 @@
     }
   },
   "mops_twse_com_tw": {
-    "encode": "big5",
+    "codec": "big5",
     "head": {
       "HTML": "tr:eq(1)"
     },
@@ -17,7 +17,7 @@
     }
   },
   "isin_twse_com_tw": {
-    "encode": "big5",
+    "codec": "big5",
     "head": {
       "HTML": "tr:eq(0)"
     },
